@@ -24,14 +24,33 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 CONFIG += c++11
 
-SOURCES +=
+SOURCES += \
+    main.cpp \
+    pcb.cpp \
+    processcreate.cpp \
+    simulator.cpp \
+    startwindow.cpp
 
-HEADERS +=
+HEADERS += \
+    pcb.h \
+    processcreate.h \
+    simulator.h \
+    startwindow.h
 
 FORMS += \
-        mainwindow.ui
+    processcreate.ui \
+    simulator.ui \
+    startwindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+RESOURCES += \
+    res.qrc
+
+DISTFILES += \
+    Allocation-and-Reclaim.rc
+
+RC_ICONS += icon.ico
