@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>res/bgp.png</file>
+        <file>res/gallery.png</file>
+        <file>res/icon.png</file>
+        <file>res/rotation.png</file>
+        <file>res/io.png</file>
+    </qresource>
+</RCC>
