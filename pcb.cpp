@@ -2,7 +2,7 @@
 
 PCB::PCB() {}
 
-PCB::PCB(int pid, int neededTime, int priority)
+PCB::PCB(int pid, int neededTime, int priority,int neededLength)
 {
     this->pid = pid;
     this->neededTime = neededTime;
@@ -12,6 +12,8 @@ PCB::PCB(int pid, int neededTime, int priority)
     this->waitingTime = 0;
     this->usedTimeSlice = 0;
     this->eventType = "N/A";
+    this->neededLength = neededLength;
+    this->startingPos = 0;
     /* 0 -> Ready
      * 1 -> Running
      * 2 -> Waiting
@@ -19,6 +21,7 @@ PCB::PCB(int pid, int neededTime, int priority)
      * 4 -> Terminated
      */
 }
+
 
 void PCB::setPriority(int priority)
 {
@@ -30,6 +33,7 @@ void PCB::setPid(int pid)
     this->pid = pid;
 }
 
+
 void PCB::setStatus(int status)
 {
     this->status = status;
@@ -38,6 +42,16 @@ void PCB::setStatus(int status)
 void PCB::setNeededTime(int neededTime)
 {
     this->neededTime = neededTime;
+}
+
+void PCB::setNeededLength(int neededLength)
+{
+    this->neededLength = neededLength;
+}
+
+void PCB::setStartingPos(int startingPos)
+{
+    this->startingPos = startingPos;
 }
 
 int PCB::getPid()
@@ -73,6 +87,16 @@ int PCB::getWaitingTime()
 int PCB::getUsedTimeSlice()
 {
     return this->usedTimeSlice;
+}
+
+int PCB::getNeededLength()
+{
+    return this->neededLength;
+}
+
+int PCB::getStartingPos()
+{
+    return this->startingPos;
 }
 
 void PCB::timeDecline()

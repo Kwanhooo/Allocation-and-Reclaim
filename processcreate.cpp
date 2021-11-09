@@ -23,6 +23,6 @@ void ProcessCreate::on_pushButton_exit_clicked()
 void ProcessCreate::on_pushButton_create_clicked()
 {
     qDebug()<< ui->lineEdit_pid->text().toInt();
-    PCB* newPCB = new PCB(ui->lineEdit_pid->text().toInt(),ui->lineEdit_neededtime->text().toInt(),ui->lineEdit_priority->text().toInt());
+    PCB* newPCB = new PCB(ui->lineEdit_pid->text().toInt(),ui->lineEdit_neededtime->text().toInt(),ui->lineEdit_priority->text().toInt(),ui->lineEdit_neededLength->text().toInt());
     emit transmitPCB(newPCB);
 }

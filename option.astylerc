@@ -1,0 +1,16 @@
+style=ansi
+# set default parsing to c/cpp files
+mode=c
+# brackets should be attached to pre-bracket lines
+brackets=break
+# set 6 spaces per indent
+indent=spaces=4
+# indent switch blocks
+indent-switches
+# suffix of original files should be .pre
+suffix=.pre
+#Add extra indentation to namespace blocks
+indent-namespaces
+max-instatement-indent=80
+min-conditional-indent=0
+pad=oper

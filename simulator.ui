@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1130</width>
+    <width>1400</width>
     <height>810</height>
    </rect>
   </property>
@@ -945,12 +945,58 @@
     <string>日志</string>
    </property>
   </widget>
+  <widget class="QGroupBox" name="groupBox">
+   <property name="geometry">
+    <rect>
+     <x>1125</x>
+     <y>39</y>
+     <width>260</width>
+     <height>751</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string/>
+   </property>
+   <widget class="QListView" name="listView_memory">
+    <property name="geometry">
+     <rect>
+      <x>5</x>
+      <y>5</y>
+      <width>251</width>
+      <height>741</height>
+     </rect>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QLabel" name="label_memoryMonitor">
+   <property name="geometry">
+    <rect>
+     <x>1120</x>
+     <y>-3</y>
+     <width>141</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>微软雅黑</family>
+     <pointsize>16</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>内存监视器</string>
+   </property>
+  </widget>
   <zorder>groupBox_monitor</zorder>
   <zorder>label_monitor</zorder>
   <zorder>groupBox_processOperation</zorder>
   <zorder>groupBox_log</zorder>
   <zorder>label_log</zorder>
   <zorder>label_processOperation</zorder>
+  <zorder>groupBox</zorder>
+  <zorder>label_memoryMonitor</zorder>
  </widget>
  <resources/>
  <connections/>

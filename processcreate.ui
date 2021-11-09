@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>442</width>
-    <height>270</height>
+    <height>306</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -125,7 +125,7 @@
    <property name="geometry">
     <rect>
      <x>90</x>
-     <y>210</y>
+     <y>250</y>
      <width>90</width>
      <height>35</height>
     </rect>
@@ -146,7 +146,7 @@
    <property name="geometry">
     <rect>
      <x>260</x>
-     <y>210</y>
+     <y>250</y>
      <width>90</width>
      <height>35</height>
     </rect>
@@ -161,6 +161,35 @@
    </property>
    <property name="text">
     <string>取消</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEdit_neededLength">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>200</y>
+     <width>241</width>
+     <height>25</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_neededLength">
+   <property name="geometry">
+    <rect>
+     <x>42</x>
+     <y>200</y>
+     <width>86</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>微软雅黑</family>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>所需内存大小</string>
    </property>
   </widget>
  </widget>
