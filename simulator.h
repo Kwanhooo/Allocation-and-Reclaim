@@ -6,6 +6,7 @@
 #include <QThread>
 
 #include "pcb.h"
+#include "partition.h"
 
 #define PREEMPTIVE_PRIORITY 1195
 #define NON_PRIORITY 1196
@@ -29,7 +30,10 @@ public:
     const int maxPriority = 63;
     const int agingTime = 30;
 
-    //U参数
+    const int memorySize = 64;//Bytes
+    const int maxNeededLength = 20;//Bytes
+
+    //参数
     int TIME_SLICE;
     int MAX_PROGRAM_AMOUNT;
     int randomlyEventRate;
@@ -71,13 +75,18 @@ private:
     int startMode;
 
     PCB* runningProc;//指向正在运行的进程
-    //容器
+
+    /*
+     * 容器
+     */
     QList<PCB*> readyList;
     QList<PCB*> waitingList;
     QList<PCB*> IOList;
     QList<PCB*> suspendedList;
     QList<PCB*> terminatedList;
     QList<PCB*> backupProcList;
+    //分区表
+    QList<Partition*> partitionTable;
 
     //调度方法
     PCB* getTopPriority();//获取最高优先级
@@ -100,6 +109,7 @@ private:
     void refreshSuspendedUI();
     void refreshWaitingUI();
     void refreshIOUI();
+    void refreshMemoryUI();
 
     void loadProc();//从后备队列里面载入新的进程
 
@@ -115,6 +125,13 @@ private:
     void IOAll();//一次性IO完
 
     void automaticRun();//自动运行
+
+    /*
+     * 内存分配方法
+     * @最先适应算法 first-fit
+     */
+    int firstFitAction(int neededLength);
+    void releasePartition(int startingPos);
 };
 
 #endif // SIMULATOR_H

@@ -29,13 +29,15 @@ SOURCES += \
     pcb.cpp \
     processcreate.cpp \
     simulator.cpp \
-    startwindow.cpp
+    startwindow.cpp \
+    partition.cpp
 
 HEADERS += \
     pcb.h \
     processcreate.h \
     simulator.h \
-    startwindow.h
+    startwindow.h \
+    partition.h
 
 FORMS += \
     processcreate.ui \
@@ -51,6 +53,7 @@ RESOURCES += \
     res.qrc
 
 DISTFILES += \
-    Allocation-and-Reclaim.rc
+    Allocation-and-Reclaim.rc \
+    option.astylerc
 
 RC_ICONS += icon.ico
