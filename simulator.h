@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <QList>
 #include <QThread>
+#include <QButtonGroup>
+#include <QPushButton>
 
 #include "pcb.h"
 #include "partition.h"
@@ -24,6 +26,8 @@ public:
     explicit Simulator(QWidget *parent = nullptr);
     ~Simulator();
 
+    int testInt;
+
     //参数
     const int maxPID = 100000;
     const int maxTime = 60;
@@ -31,7 +35,14 @@ public:
     const int agingTime = 30;
 
     const int memorySize = 64;//Bytes
+    const int minNeededLength = 10;//Bytes
     const int maxNeededLength = 20;//Bytes
+    //内存监视器相关
+    const int ORIGIN_X = 1128;
+    const int ORIGIN_Y = 42;
+    const int TOTAL_HEIGHT = 743;
+    const int STANDARD_W = 254;
+    QList<QPushButton*>* displayButtonList;
 
     //参数
     int TIME_SLICE;
@@ -109,6 +120,8 @@ private:
     void refreshSuspendedUI();
     void refreshWaitingUI();
     void refreshIOUI();
+
+    //内存监视器相关
     void refreshMemoryUI();
 
     void loadProc();//从后备队列里面载入新的进程
