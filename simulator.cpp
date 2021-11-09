@@ -17,11 +17,6 @@ Simulator::Simulator(QWidget *parent) :
     this->setWindowTitle("PowerSimulator");
 
     this->runningProc = nullptr;
-
-    //初始化内存分区表
-    this->partitionTable.append(new Partition(0,this->memorySize,0));
-    this->refreshMemoryUI();
-
     this->USBOccupy = 0;
     this->PrinterOccupy = 0;
     this->DiskOccupy = 0;
@@ -44,6 +39,14 @@ Simulator::Simulator(QWidget *parent) :
     ui->spinBox_autoIOGap->setValue(this->autoIOGap);
     ui->label_rotation->setVisible(false);
     ui->label_IO_icon->setVisible(false);
+
+    this->displayButtonList = new QList<QPushButton*>();
+
+    //初始化内存分区表
+    this->partitionTable.append(new Partition(0,this->memorySize,0));
+    this->refreshMemoryUI();
+
+    testInt = 1;
 }
 
 //接受启动模式的槽函数
@@ -314,11 +317,15 @@ void Simulator::refreshWaitingUI()
     {
         if(startMode == ROUND_ROBIN)
             waitingStringList<<"PID:"+QString::number(waitingList.at(i)->getPid())+"\n"+
-                               "剩余时长:"+QString::number(waitingList.at(i)->getCalUseTime())+"            "+"申请IO:"+waitingList.at(i)->eventType+"\n";
+                               "剩余时长:"+QString::number(waitingList.at(i)->getCalUseTime())+"            "+
+                               "申请IO:"+waitingList.at(i)->eventType+"\n"+
+                               "占用内存:"+QString::number(waitingList.at(i)->getNeededLength())+"\n";
         else
             waitingStringList<<"PID:"+QString::number(waitingList.at(i)->getPid())+"\n"+
-                               "剩余时长:"+QString::number(waitingList.at(i)->getCalUseTime())+"            "+"申请IO:"+waitingList.at(i)->eventType+"\n"+
+                               "剩余时长:"+QString::number(waitingList.at(i)->getCalUseTime())+"            "+
+                               "申请IO:"+waitingList.at(i)->eventType+"\n"+
                                "优先级:"+QString::number(waitingList.at(i)->getPriority())+"\n";
+                               "占用内存:"+QString::number(waitingList.at(i)->getNeededLength())+"\n";
     }
     QStringListModel* waitingStringListModel = new QStringListModel(waitingStringList);
     ui->listView_waiting->setModel(waitingStringListModel);
@@ -335,45 +342,98 @@ void Simulator::refreshIOUI()
     {
         if(startMode == ROUND_ROBIN)
             IOStringList<<"PID:"+QString::number(IOList.at(i)->getPid())+"\n"+
-                          "剩余时长:"+QString::number(IOList.at(i)->getCalUseTime())+"         "+"申请IO:"+IOList.at(i)->eventType+"\n";
+                          "剩余时长:"+QString::number(IOList.at(i)->getCalUseTime())+"         "+
+                          "申请IO:"+IOList.at(i)->eventType+"\n"+
+                          "占用内存:"+QString::number(IOList.at(i)->getNeededLength())+"\n";
         else
             IOStringList<<"PID:"+QString::number(IOList.at(i)->getPid())+"\n"+
-                          "剩余时长:"+QString::number(IOList.at(i)->getCalUseTime())+"         "+"申请IO:"+IOList.at(i)->eventType+"\n"+
-                          "优先级:"+QString::number(IOList.at(i)->getPriority())+"\n";
+                          "剩余时长:"+QString::number(IOList.at(i)->getCalUseTime())+"         "+
+                          "申请IO:"+IOList.at(i)->eventType+"\n"+
+                          "优先级:"+QString::number(IOList.at(i)->getPriority())+"\n"
+                          "占用内存:"+QString::number(IOList.at(i)->getNeededLength())+"\n";
     }
     QStringListModel* IOStringListModel = new QStringListModel(IOStringList);
     ui->listView_IO->setModel(IOStringListModel);
     ui->label_IOLength->setText(QString::number(IOList.length()));
 }
 
+
 void Simulator::refreshMemoryUI()
 {
-    QStringList partititonStringList;
-    for (int i = 0;i < this->partitionTable.length(); i++)
+    qDebug()<<"refresh!!!!"<<endl;
+    //从按钮组中删除所有按钮
+    for (int i = 0;i < this->displayButtonList->length();i++)
     {
+        qDebug()<<displayButtonList->length()<<endl;
+        qDebug()<<this->partitionTable.length()<<endl;
+        delete this->displayButtonList->takeAt(i);
+    }
+
+    for (int i = 0;i < this->partitionTable.length();i++)
+    {
+        Partition* partitionToShow = partitionTable.at(i);
+
+        QPushButton* displayButton = new QPushButton(this);
+        displayButton->setEnabled(false);
         QString statusEmoji;
         if(partitionTable.at(i)->getStatus() == 0)
-            statusEmoji = "✔";
-        else
-            statusEmoji = "🔒";
-
-        if(i == 0)
         {
-            partititonStringList<<QString::number(partitionTable.at(i)->getStart())+"\n\n"+
-                                  "LENGTH -> "+QString::number(partitionTable.at(i)->getLength())+"\n"+
-                                  "STATUS -> "+statusEmoji+"\n\n"+
-                                  QString::number(partitionTable.at(i)->getLength()+partitionTable.at(i)->getStart());
+            statusEmoji = "🔑";
+            displayButton->setStyleSheet("background-color: rgb(166, 191, 75);color:rgb(0, 0, 0);font-size: 13px;font-family: \"Cascadia Code\", serif;");
         }
-        else {
-            partititonStringList<<"\nLENGTH -> "+QString::number(partitionTable.at(i)->getLength())+"\n"
-                                  "STATUS -> "+statusEmoji+"\n\n"+
-                                  QString::number(partitionTable.at(i)->getLength()+partitionTable.at(i)->getStart());
-        }
+        else
+        {
+            statusEmoji = "🔒";
+            displayButton->setStyleSheet("background-color: rgb(255, 102, 90);color:rgb(0, 0, 0);font-size: 13px;font-family: \"Cascadia Code\", serif;");
 
+        }
+        QString displayContent = QString::number(partitionToShow->getStart())+"\n"+
+                statusEmoji+" LENGTH -> "+QString::number(partitionToShow->getLength())+"\n"+
+                QString::number(partitionToShow->getLength()+partitionTable.at(i)->getStart());
+
+        this->displayButtonList->append(displayButton);
+        displayButton->setText(displayContent);
+
+        double posY = ORIGIN_Y+TOTAL_HEIGHT*(1.0*partitionToShow->getStart()/memorySize);
+        double height = TOTAL_HEIGHT*(1.0*partitionToShow->getLength()/memorySize);
+        displayButton->setGeometry(ORIGIN_X,static_cast<int>(posY),
+                                   STANDARD_W,static_cast<int>(height));
+        displayButton->show();
+        testInt+=5;
     }
-    QStringListModel* partititonStringListModel = new QStringListModel(partititonStringList);
-    ui->listView_memory->setModel(partititonStringListModel);
 }
+
+/*
+ * 此前的版本
+ */
+//void Simulator::refreshMemoryUI()
+//{
+//    QStringList partititonStringList;
+//    for (int i = 0;i < this->partitionTable.length(); i++)
+//    {
+//        QString statusEmoji;
+//        if(partitionTable.at(i)->getStatus() == 0)
+//            statusEmoji = "✔";
+//        else
+//            statusEmoji = "🔒";
+
+//        if(i == 0)
+//        {
+//            partititonStringList<<QString::number(partitionTable.at(i)->getStart())+"\n\n"+
+//                                  "LENGTH -> "+QString::number(partitionTable.at(i)->getLength())+"\n"+
+//                                  "STATUS -> "+statusEmoji+"\n\n"+
+//                                  QString::number(partitionTable.at(i)->getLength()+partitionTable.at(i)->getStart());
+//       }
+//        else {
+//            partititonStringList<<"\nLENGTH -> "+QString::number(partitionTable.at(i)->getLength())+"\n"
+//                                  "STATUS -> "+statusEmoji+"\n\n"+
+//                                  QString::number(partitionTable.at(i)->getLength()+partitionTable.at(i)->getStart());
+//        }
+
+//    }
+//    QStringListModel* partititonStringListModel = new QStringListModel(partititonStringList);
+//    ui->listView_memory->setModel(partititonStringListModel);
+//}
 
 void Simulator::loadIOProc(QString IOType)
 {
@@ -562,7 +622,7 @@ void Simulator::on_pushButton_random_clicked()
     do {randTime = qrand()%(maxTime+1);} while (randTime <= 0);
     do {randPID = qrand()%(maxPID+1);} while (randPID <= 0);
     do {randPriority = qrand()%(maxPriority+1);} while (randTime <= 0);
-    do {randNeededLength = qrand()%(maxNeededLength+1);} while (randNeededLength <= 0);
+    do {randNeededLength = qrand()%(maxNeededLength+1);} while (randNeededLength < minNeededLength);
 
     PCB* newPCB = new PCB(randPID,randTime,randPriority,randNeededLength);
     addLog(QString("生成了新进程：PID = ").append(QString::number(newPCB->getPid())));

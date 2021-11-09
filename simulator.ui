@@ -957,16 +957,6 @@
    <property name="title">
     <string/>
    </property>
-   <widget class="QListView" name="listView_memory">
-    <property name="geometry">
-     <rect>
-      <x>5</x>
-      <y>5</y>
-      <width>251</width>
-      <height>741</height>
-     </rect>
-    </property>
-   </widget>
   </widget>
   <widget class="QLabel" name="label_memoryMonitor">
    <property name="geometry">
