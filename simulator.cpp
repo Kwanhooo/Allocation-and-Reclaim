@@ -325,7 +325,7 @@ void Simulator::refreshWaitingUI()
                                "剩余时长:"+QString::number(waitingList.at(i)->getCalUseTime())+"            "+
                                "申请IO:"+waitingList.at(i)->eventType+"\n"+
                                "优先级:"+QString::number(waitingList.at(i)->getPriority())+"\n";
-                               "占用内存:"+QString::number(waitingList.at(i)->getNeededLength())+"\n";
+        "占用内存:"+QString::number(waitingList.at(i)->getNeededLength())+"\n";
     }
     QStringListModel* waitingStringListModel = new QStringListModel(waitingStringList);
     ui->listView_waiting->setModel(waitingStringListModel);
@@ -350,7 +350,7 @@ void Simulator::refreshIOUI()
                           "剩余时长:"+QString::number(IOList.at(i)->getCalUseTime())+"         "+
                           "申请IO:"+IOList.at(i)->eventType+"\n"+
                           "优先级:"+QString::number(IOList.at(i)->getPriority())+"\n"
-                          "占用内存:"+QString::number(IOList.at(i)->getNeededLength())+"\n";
+                                                                              "占用内存:"+QString::number(IOList.at(i)->getNeededLength())+"\n";
     }
     QStringListModel* IOStringListModel = new QStringListModel(IOStringList);
     ui->listView_IO->setModel(IOStringListModel);
@@ -360,12 +360,10 @@ void Simulator::refreshIOUI()
 
 void Simulator::refreshMemoryUI()
 {
-    qDebug()<<"refresh!!!!"<<endl;
+    qDebug()<<"refreshMemoryUI!!!"<<endl;
     //从按钮组中删除所有按钮
     for (int i = 0;i < this->displayButtonList->length();i++)
     {
-        qDebug()<<displayButtonList->length()<<endl;
-        qDebug()<<this->partitionTable.length()<<endl;
         delete this->displayButtonList->takeAt(i);
     }
 
@@ -548,7 +546,18 @@ int Simulator::firstFitAction(int neededLength)
             return suitPartition->getStart();
         }
     }
-    return -1;
+
+    //到这里还没有return，说明没有找到一个合适的分区容纳这个进程
+    //求取总空闲空间，看看空闲的总内存是否能够满足
+    if(this->getFreeMemorySize() >= neededLength)//能
+    {
+        //收缩内存
+        shrinkAction(neededLength);
+        //重新递归调用
+        firstFitAction(neededLength);
+    }
+    else//不能
+        return -1;
 }
 
 void Simulator::releasePartition(int startingPos)
@@ -574,6 +583,81 @@ void Simulator::releasePartition(int startingPos)
             this->refreshMemoryUI();
             return;
         }
+    }
+}
+
+int Simulator::getFreeMemorySize()
+{
+    int freeMemorySize = 0;
+    foreach(Partition* partition,this->partitionTable)
+    {
+        if(partition->getStatus() == 0)
+        {
+            freeMemorySize += partition->getLength();
+        }
+    }
+    return freeMemorySize;
+}
+
+
+
+void Simulator::shrinkAction(int neededLength)
+{
+    addLog("shrinkAction is CALLED!");
+    int testLength = 0;
+    while(true)
+    {
+        qDebug()<<"while迭代";
+        for (int i = 0;i < this->partitionTable.length();i++)
+        {
+            qDebug()<<"进for"<<endl;
+            qDebug()<<"this->partitionTable.length()"<<this->partitionTable.length()<<endl;
+            if(i+1 < partitionTable.length() && partitionTable.at(i)->getStatus() == 0)
+            {
+                //SWAP
+
+                qDebug()<<partitionTable.at(i)->getStart()<<"  "<<partitionTable.at(i)->getStatus()<<"   "<<partitionTable.at(i)->getLength();
+                qDebug()<<partitionTable.at(i+1)->getStart()<<"  "<<partitionTable.at(i+1)->getStatus()<<"   "<<partitionTable.at(i+1)->getLength();
+                int start = partitionTable.at(i)->getStart();
+                int status = partitionTable.at(i)->getStatus();
+                int length = partitionTable.at(i)->getLength();
+
+                partitionTable.at(i)->setStart(partitionTable.at(i+1)->getStart());
+                partitionTable.at(i)->setStatus(partitionTable.at(i+1)->getStatus());
+                partitionTable.at(i)->setLength(partitionTable.at(i+1)->getLength());
+
+                partitionTable.at(i+1)->setStart(start);
+                partitionTable.at(i+1)->setStatus(status);
+                partitionTable.at(i+1)->setLength(length);
+
+                qDebug()<<partitionTable.at(i)->getStart()<<"  "<<partitionTable.at(i)->getStatus()<<"   "<<partitionTable.at(i)->getLength();
+                qDebug()<<partitionTable.at(i+1)->getStart()<<"  "<<partitionTable.at(i+1)->getStatus()<<"   "<<partitionTable.at(i+1)->getLength();
+                qDebug()<<"交换完成了！！！！！！！！！！"<<endl;
+                this->refreshMemoryUI();
+                //交换完成之后看看能不能与后一块合并
+                if(i+1+1 < partitionTable.length() && partitionTable.at(i+1+1)->getStatus() == 0)
+                {
+                    qDebug()<<"开始合并"<<endl;
+                    partitionTable.at(i+1)->setLength(partitionTable.at(i+1)->getLength() + partitionTable.at(i+1+1)->getLength());
+                    testLength = partitionTable.at(i+1)->getLength();
+                    this->partitionTable.removeAt(i+1+1);
+                    qDebug()<<"合并完成"<<endl;
+                }
+                qDebug()<<"break前"<<endl;
+                break;
+            }
+        }
+        qDebug()<<"break后"<<endl;
+
+        //看看收缩出来的空间是否满足了需求
+        if(testLength >= neededLength)
+        {
+            qDebug()<<"判断"<<endl;
+//            this->addLog("收缩了内存空间，收缩空间起址:"+QString::number(shrinkedPartition->getStart())+"\n\t"+
+//                         "收缩出的总长度:"+QString::number(shrinkedPartition->getLength()));
+            return;
+        }
+        qDebug()<<"准备再循环"<<endl;
     }
 }
 

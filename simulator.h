@@ -145,6 +145,8 @@ private:
      */
     int firstFitAction(int neededLength);
     void releasePartition(int startingPos);
+    int getFreeMemorySize();
+    void shrinkAction(int neededLength);
 };
 
 #endif // SIMULATOR_H
