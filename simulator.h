@@ -80,6 +80,8 @@ private slots:
     void on_spinBox_maxProcAmount_valueChanged(const QString &arg1);
     void on_lineEdit_timeScale_textChanged(const QString &arg1);
 
+    void on_pushButton_clicked();
+
 private:
     Ui::Simulator *ui;
 

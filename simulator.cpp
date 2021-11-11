@@ -91,11 +91,13 @@ void Simulator::refreshReadyUI()
         if(this->startMode == ROUND_ROBIN)
             readyStringList<<"PID:"+QString::number(readyList.at(i)->getPid())+"\n"+
                              "剩余运行时长:"+QString::number(readyList.at(i)->getCalUseTime())+"\n"+
+                             "起始地址:"+QString::number(readyList.at(i)->getStartingPos())+"\n"+
                              "占用内存:"+QString::number(readyList.at(i)->getNeededLength())+"\n";
         else
             readyStringList<<"PID:"+QString::number(readyList.at(i)->getPid())+"\n"+
                              "剩余运行时长:"+QString::number(readyList.at(i)->getCalUseTime())+"\n"
                                                                                          "优先级:"+QString::number(readyList.at(i)->getPriority())+"\n"+
+                             "起始地址:"+QString::number(readyList.at(i)->getStartingPos())+"\n"+
                              "占用内存:"+QString::number(readyList.at(i)->getNeededLength())+"\n";
     }
     QStringListModel* readyStringListModel = new QStringListModel(readyStringList);
@@ -109,12 +111,14 @@ void Simulator::refreshRunningUI()
     if(startMode == ROUND_ROBIN)
         runningStringList<<"PID:"+QString::number(runningProc->getPid())+"\n"+
                            "剩余时长:"+QString::number(runningProc->getCalUseTime())+"\n"
-                                                                                 "剩余时间片:"+QString::number(TIME_SLICE-runningProc->getUsedTimeSlice())+"\n"+
+                           "剩余时间片:"+QString::number(TIME_SLICE-runningProc->getUsedTimeSlice())+"\n"+
+                           "起始地址:"+QString::number(runningProc->getStartingPos())+"\n"+
                            "占用内存:"+QString::number(runningProc->getNeededLength())+"\n";
     else
         runningStringList<<"PID:"+QString::number(runningProc->getPid())+"\n"+
                            "剩余时长:"+QString::number(runningProc->getCalUseTime())+"\n"
-                                                                                 "优先级:"+QString::number(runningProc->getPriority())+"\n"+
+                           "优先级:"+QString::number(runningProc->getPriority())+"\n"+
+                           "起始地址:"+QString::number(runningProc->getStartingPos())+"\n"+
                            "占用内存:"+QString::number(runningProc->getNeededLength())+"\n";
     QStringListModel* runningStringListModel = new QStringListModel(runningStringList);
     ui->listView_running->setModel(runningStringListModel);
@@ -344,13 +348,15 @@ void Simulator::refreshIOUI()
             IOStringList<<"PID:"+QString::number(IOList.at(i)->getPid())+"\n"+
                           "剩余时长:"+QString::number(IOList.at(i)->getCalUseTime())+"         "+
                           "申请IO:"+IOList.at(i)->eventType+"\n"+
+                          "起始地址:"+QString::number(IOList.at(i)->getStartingPos())+"\n"+
                           "占用内存:"+QString::number(IOList.at(i)->getNeededLength())+"\n";
         else
             IOStringList<<"PID:"+QString::number(IOList.at(i)->getPid())+"\n"+
                           "剩余时长:"+QString::number(IOList.at(i)->getCalUseTime())+"         "+
                           "申请IO:"+IOList.at(i)->eventType+"\n"+
-                          "优先级:"+QString::number(IOList.at(i)->getPriority())+"\n"
-                                                                              "占用内存:"+QString::number(IOList.at(i)->getNeededLength())+"\n";
+                          "优先级:"+QString::number(IOList.at(i)->getPriority())+"\n"+
+                          "起始地址:"+QString::number(IOList.at(i)->getStartingPos())+"\n"+
+                          "占用内存:"+QString::number(IOList.at(i)->getNeededLength())+"\n";
     }
     QStringListModel* IOStringListModel = new QStringListModel(IOStringList);
     ui->listView_IO->setModel(IOStringListModel);
@@ -364,8 +370,11 @@ void Simulator::refreshMemoryUI()
     //从按钮组中删除所有按钮
     for (int i = 0;i < this->displayButtonList->length();i++)
     {
-        delete this->displayButtonList->takeAt(i);
+        delete this->displayButtonList->at(i);
     }
+    delete this->displayButtonList;
+    this->displayButtonList = new QList<QPushButton*>;
+
 
     for (int i = 0;i < this->partitionTable.length();i++)
     {
@@ -603,8 +612,10 @@ int Simulator::getFreeMemorySize()
 
 void Simulator::shrinkAction(int neededLength)
 {
-    addLog("shrinkAction is CALLED!");
-    int testLength = 0;
+    addLog("@@@@shrinkAction is CALLED!");
+    int shrinkedLength = -1;
+    int shrinkedStartingPos = 0;
+
     while(true)
     {
         qDebug()<<"while迭代";
@@ -615,18 +626,17 @@ void Simulator::shrinkAction(int neededLength)
             if(i+1 < partitionTable.length() && partitionTable.at(i)->getStatus() == 0)
             {
                 //SWAP
-
                 qDebug()<<partitionTable.at(i)->getStart()<<"  "<<partitionTable.at(i)->getStatus()<<"   "<<partitionTable.at(i)->getLength();
                 qDebug()<<partitionTable.at(i+1)->getStart()<<"  "<<partitionTable.at(i+1)->getStatus()<<"   "<<partitionTable.at(i+1)->getLength();
-                int start = partitionTable.at(i)->getStart();
+//                int start = partitionTable.at(i)->getStart();
                 int status = partitionTable.at(i)->getStatus();
                 int length = partitionTable.at(i)->getLength();
 
-                partitionTable.at(i)->setStart(partitionTable.at(i+1)->getStart());
+//                partitionTable.at(i)->setStart(partitionTable.at(i+1)->getStart());
                 partitionTable.at(i)->setStatus(partitionTable.at(i+1)->getStatus());
                 partitionTable.at(i)->setLength(partitionTable.at(i+1)->getLength());
 
-                partitionTable.at(i+1)->setStart(start);
+//                partitionTable.at(i+1)->setStart(start);
                 partitionTable.at(i+1)->setStatus(status);
                 partitionTable.at(i+1)->setLength(length);
 
@@ -634,12 +644,18 @@ void Simulator::shrinkAction(int neededLength)
                 qDebug()<<partitionTable.at(i+1)->getStart()<<"  "<<partitionTable.at(i+1)->getStatus()<<"   "<<partitionTable.at(i+1)->getLength();
                 qDebug()<<"交换完成了！！！！！！！！！！"<<endl;
                 this->refreshMemoryUI();
+
+
+                //此时应该重新修改进程的起始地址，因为已经变更
+
+
                 //交换完成之后看看能不能与后一块合并
                 if(i+1+1 < partitionTable.length() && partitionTable.at(i+1+1)->getStatus() == 0)
                 {
                     qDebug()<<"开始合并"<<endl;
                     partitionTable.at(i+1)->setLength(partitionTable.at(i+1)->getLength() + partitionTable.at(i+1+1)->getLength());
-                    testLength = partitionTable.at(i+1)->getLength();
+                    shrinkedLength = partitionTable.at(i+1)->getLength();
+                    shrinkedStartingPos = partitionTable.at(i+1)->getStart();
                     this->partitionTable.removeAt(i+1+1);
                     qDebug()<<"合并完成"<<endl;
                 }
@@ -650,11 +666,15 @@ void Simulator::shrinkAction(int neededLength)
         qDebug()<<"break后"<<endl;
 
         //看看收缩出来的空间是否满足了需求
-        if(testLength >= neededLength)
+        if(shrinkedLength >= neededLength)
         {
+            if(shrinkedLength == -1 || shrinkedStartingPos == -1)
+            {
+                qDebug()<<"！！！！SHRINK出错！！！！！！！！！";
+            }
             qDebug()<<"判断"<<endl;
-//            this->addLog("收缩了内存空间，收缩空间起址:"+QString::number(shrinkedPartition->getStart())+"\n\t"+
-//                         "收缩出的总长度:"+QString::number(shrinkedPartition->getLength()));
+            this->addLog("收缩了内存空间，收缩空间起址:"+QString::number(shrinkedStartingPos)+"\n\t\t"+
+                         "收缩出的总长度:"+QString::number(shrinkedLength));
             return;
         }
         qDebug()<<"准备再循环"<<endl;
@@ -1235,4 +1255,15 @@ void Simulator::on_lineEdit_timeScale_textChanged(const QString &arg1)
     this->timer->stop();
     this->timeScale = arg1.toInt();
     this->timer->start(this->timeScale);
+}
+
+void Simulator::on_pushButton_clicked()
+{
+    //从按钮组中删除所有按钮
+    for (int i = 0;i < this->displayButtonList->length();i++)
+    {
+        delete this->displayButtonList->at(i);
+    }
+    delete this->displayButtonList;
+    this->displayButtonList = new QList<QPushButton*>;
 }
