@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>452</width>
-    <height>261</height>
+    <width>453</width>
+    <height>282</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
     <property name="geometry">
      <rect>
       <x>15</x>
-      <y>0</y>
+      <y>10</y>
       <width>421</width>
       <height>82</height>
      </rect>
@@ -39,7 +39,7 @@
     <property name="geometry">
      <rect>
       <x>13</x>
-      <y>71</y>
+      <y>90</y>
       <width>423</width>
       <height>121</height>
      </rect>
@@ -97,7 +97,7 @@
     <property name="geometry">
      <rect>
       <x>260</x>
-      <y>210</y>
+      <y>230</y>
       <width>80</width>
       <height>30</height>
      </rect>
@@ -106,6 +106,8 @@
      <font>
       <family>苹方-简</family>
       <pointsize>10</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -116,7 +118,7 @@
     <property name="geometry">
      <rect>
       <x>355</x>
-      <y>210</y>
+      <y>230</y>
       <width>80</width>
       <height>30</height>
      </rect>
@@ -125,6 +127,8 @@
      <font>
       <family>苹方-简</family>
       <pointsize>10</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -147,11 +151,95 @@
      <string/>
     </property>
    </widget>
+   <widget class="QWidget" name="layoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>0</y>
+      <width>52</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="titleBarGroup">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QPushButton" name="btn_min">
+       <property name="minimumSize">
+        <size>
+         <width>25</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>25</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>.萍方-简</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton{
+   color:white;
+}
+QPushButton:hover{
+  background-color:rgb(85, 170, 255);
+  color:rgb(0,0,0);
+}</string>
+       </property>
+       <property name="text">
+        <string>－</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_close">
+       <property name="minimumSize">
+        <size>
+         <width>25</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>25</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>.萍方-简</family>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton{
+   color:white;
+}
+QPushButton:hover{
+  background-color:rgb(212, 64, 39);
+  color:rgb(0,0,0);
+}</string>
+       </property>
+       <property name="text">
+        <string>×</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
    <zorder>groupBox</zorder>
    <zorder>label_image</zorder>
    <zorder>label_title</zorder>
    <zorder>pushButton_start</zorder>
    <zorder>pushButton_exit</zorder>
+   <zorder>layoutWidget</zorder>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
  </widget>

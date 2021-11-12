@@ -26,11 +26,9 @@ public:
     explicit Simulator(QWidget *parent = nullptr);
     ~Simulator();
 
-    int testInt;
-
     //参数
     const int maxPID = 100000;
-    const int maxTime = 60;
+    const int maxTime = 5;
     const int maxPriority = 63;
     const int agingTime = 30;
 
@@ -82,7 +80,23 @@ private slots:
 
     void on_pushButton_clicked();
 
+    void on_btn_min_clicked();
+
+    void on_btn_close_clicked();
+
+
+protected:
+    //鼠标事件重写标示
+    virtual void mouseReleaseEvent(QMouseEvent *event) override;
+    virtual void mouseMoveEvent(QMouseEvent *event) override;
+    virtual void mousePressEvent(QMouseEvent *event) override;
+
 private:
+
+    //鼠标事件相关变量
+    bool m_Drag = false;
+    QPoint m_DragPosition;
+
     Ui::Simulator *ui;
 
     int startMode;
@@ -145,10 +159,15 @@ private:
      * 内存分配方法
      * @最先适应算法 first-fit
      */
-    int firstFitAction(int neededLength);
+    int firstFitAction(PCB* pcbToFit);
     void releasePartition(int startingPos);
     int getFreeMemorySize();
     void shrinkAction(int neededLength);
+
+signals:
+    //鼠标事件信号
+    void mouseButtonMove(QPoint pos);
+    void signalMainWindowMove();
 };
 
 #endif // SIMULATOR_H
