@@ -8,6 +8,7 @@ ProcessCreate::ProcessCreate(QWidget *parent) :
 {
     ui->setupUi(this);
     this->setWindowTitle("创建进程 - PowerSimulator");
+    this->setFixedSize(this->width(),this->height());
     this->setWindowFlag(Qt::FramelessWindowHint);
     ui->titleBarGroup->setAlignment(Qt::AlignRight);
 }

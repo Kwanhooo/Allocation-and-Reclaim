@@ -46,7 +46,9 @@ Simulator::Simulator(QWidget *parent) :
     this->displayButtonList = new QList<QPushButton*>();
 
     //初始化内存分区表
-    this->partitionTable.append(new Partition(0,this->memorySize,0));
+    Partition* initPartition = new Partition(0,this->memorySize,0);
+    initPartition->associatedPCB = nullptr;
+    this->partitionTable.append(initPartition);
     this->refreshMemoryUI();
 }
 
@@ -125,6 +127,7 @@ void Simulator::refreshReadyUI()
     QStringList readyStringList;
     for (int i = 0;i < this->readyList.length(); i++)
     {
+        readyList.at(i)->setStatus(1);
         if(this->startMode == ROUND_ROBIN)
             readyStringList<<"PID:"+QString::number(readyList.at(i)->getPid())+"\n"+
                              "剩余运行时长:"+QString::number(readyList.at(i)->getCalUseTime())+"\n"+
@@ -148,21 +151,26 @@ void Simulator::refreshRunningUI()
     if(startMode == ROUND_ROBIN)
         runningStringList<<"PID:"+QString::number(runningProc->getPid())+"\n"+
                            "剩余时长:"+QString::number(runningProc->getCalUseTime())+"\n"
-                           "剩余时间片:"+QString::number(TIME_SLICE-runningProc->getUsedTimeSlice())+"\n"+
+                                                                                 "剩余时间片:"+QString::number(TIME_SLICE-runningProc->getUsedTimeSlice())+"\n"+
                            "起始地址:"+QString::number(runningProc->getStartingPos())+"\n"+
                            "占用内存:"+QString::number(runningProc->getNeededLength())+"\n";
     else
         runningStringList<<"PID:"+QString::number(runningProc->getPid())+"\n"+
                            "剩余时长:"+QString::number(runningProc->getCalUseTime())+"\n"
-                           "优先级:"+QString::number(runningProc->getPriority())+"\n"+
+                                                                                 "优先级:"+QString::number(runningProc->getPriority())+"\n"+
                            "起始地址:"+QString::number(runningProc->getStartingPos())+"\n"+
                            "占用内存:"+QString::number(runningProc->getNeededLength())+"\n";
     QStringListModel* runningStringListModel = new QStringListModel(runningStringList);
     ui->listView_running->setModel(runningStringListModel);
     if(runningProc == nullptr)
+    {
         ui->label_runningLength->setText(QString::number(0));
+    }
     else
+    {
         ui->label_runningLength->setText(QString::number(1));
+        this->runningProc->setStatus(2);
+    }
 }
 
 void Simulator::refreshTerminatedUI()
@@ -173,6 +181,7 @@ void Simulator::refreshTerminatedUI()
     QStringList terminatedStringList;
     for (int i = 0;i < this->terminatedList.length(); i++)
     {
+        terminatedList.at(i)->setStatus(6);
         if(startMode == ROUND_ROBIN)
             terminatedStringList<<"PID:"+QString::number(terminatedList.at(i)->getPid())+"\n"+
                                   "总消耗时长:"+QString::number(terminatedList.at(i)->getNeededTime())+"\n";
@@ -198,6 +207,7 @@ void Simulator::refreshBackupUI()
     QStringList backupProcStringList;
     for (int i = 0;i < this->backupProcList.length(); i++)
     {
+        backupProcList.at(i)->setStatus(0);
         if(startMode == ROUND_ROBIN)
             backupProcStringList<<"PID:"+QString::number(backupProcList.at(i)->getPid())+"\n"+
                                   "所需时长:"+QString::number(backupProcList.at(i)->getNeededTime())+"\n"+
@@ -213,6 +223,7 @@ void Simulator::refreshBackupUI()
     ui->label_backLength->setText(QString::number(backupProcList.length()));
 }
 
+
 //从后备队列里面装载进程
 void Simulator::loadProc()
 {
@@ -221,34 +232,70 @@ void Simulator::loadProc()
         return;
     if(readyList.length() >= MAX_PROGRAM_AMOUNT)
         return;
-    PCB* pcbToLoad = this->backupProcList.takeFirst();//取出第一个
 
-    int startingPos = this->firstFitAction(pcbToLoad);
+    addLog("尝试装载进程");
+    foreach(PCB* pcbToLoad,this->backupProcList)
+    {
+        int startingPos = this->firstFitAction(pcbToLoad);
 
-    if(startingPos == -1)//放不下
-    {
-        addLog(QString("装载进程失败：PID = ").append(QString::number(pcbToLoad->getPid()))
-               .append("  ->内存不足\n\t").append("所需内存:").append(QString::number(pcbToLoad->getNeededLength())));
-        this->backupProcList.append(pcbToLoad);
-        this->refreshBackupUI();
+        if(startingPos == -1)//放不下
+        {
+            addLog(QString("未装载进程：PID = ").append(QString::number(pcbToLoad->getPid()))
+                   .append("  -> 内存不足\n\t\t").append("所需内存:").append(QString::number(pcbToLoad->getNeededLength())));
+        }
+        else//放得下
+        {
+            backupProcList.removeOne(pcbToLoad);
+            pcbToLoad->setStartingPos(startingPos);
+            this->readyList.append(pcbToLoad);
+            addLog(QString("装载进程：PID = ").append(QString::number(pcbToLoad->getPid())).append("至Ready队列   ")
+                   .append("内存起址:").append(QString::number(pcbToLoad->getStartingPos())));
+            this->refreshReadyUI();
+            this->refreshBackupUI();
+            this->refreshMemoryUI();
+        }
     }
-    else//放得下
-    {
-        pcbToLoad->setStartingPos(startingPos);
-        this->readyList.append(pcbToLoad);
-        addLog(QString("装载进程：PID = ").append(QString::number(pcbToLoad->getPid())).append("至Ready队列   ")
-               .append("内存起址:").append(QString::number(pcbToLoad->getStartingPos())));
-        this->refreshReadyUI();
-        this->refreshBackupUI();
-        this->refreshMemoryUI();
-    }
+
 }
+
+//此前的版本
+//void Simulator::loadProc()
+//{
+//    qDebug()<<"DEBUG::backupProcList.isEmpty() == "<<(backupProcList.isEmpty());
+//    if(backupProcList.isEmpty())
+//        return;
+//    if(readyList.length() >= MAX_PROGRAM_AMOUNT)
+//        return;
+
+//    PCB* pcbToLoad = this->backupProcList.takeFirst();//取出第一个
+
+//    int startingPos = this->firstFitAction(pcbToLoad);
+
+//    if(startingPos == -1)//放不下
+//    {
+//        addLog(QString("装载进程失败：PID = ").append(QString::number(pcbToLoad->getPid()))
+//               .append("  -> 内存不足\n\t").append("所需内存:").append(QString::number(pcbToLoad->getNeededLength())));
+//        this->backupProcList.append(pcbToLoad);
+//        this->refreshBackupUI();
+//    }
+//    else//放得下
+//    {
+//        pcbToLoad->setStartingPos(startingPos);
+//        this->readyList.append(pcbToLoad);
+//        addLog(QString("装载进程：PID = ").append(QString::number(pcbToLoad->getPid())).append("至Ready队列   ")
+//               .append("内存起址:").append(QString::number(pcbToLoad->getStartingPos())));
+//        this->refreshReadyUI();
+//        this->refreshBackupUI();
+//        this->refreshMemoryUI();
+//    }
+//}
 
 void Simulator::refreshSuspendedUI()
 {
     QStringList suspendedStringList;
     for (int i = 0;i < this->suspendedList.length(); i++)
     {
+        suspendedList.at(i)->setStatus(5);
         if(startMode == ROUND_ROBIN)
             suspendedStringList<<"PID:"+QString::number(suspendedList.at(i)->getPid())+"\n"+
                                  "所需时长:"+QString::number(suspendedList.at(i)->getCalUseTime())+"\n";
@@ -280,7 +327,7 @@ void Simulator::ramdomlyEvent()
     switch (eventType)
     {
     case 1:runningProc->eventType = "USB";
-        addLog(QString("PID = ").append(QString::number(runningProc->getPid())).append(" -> 接受到IO申请\n\t").append("申请IO资源:").append(runningProc->eventType));
+        addLog(QString("PID = ").append(QString::number(runningProc->getPid())).append(" -> 接受到IO申请\n\t\t").append("申请IO资源:").append(runningProc->eventType));
         if(USBOccupy < 3)
         {
             this->IOList.append(runningProc);
@@ -292,7 +339,7 @@ void Simulator::ramdomlyEvent()
         {
             this->waitingList.append(runningProc);
             refreshWaitingUI();
-            addLog(QString("IO资源已满:PID = ").append(QString::number(runningProc->getPid())).append("申请IO资源:").append(runningProc->eventType).append("\n\t正进行").append(runningProc->eventType).append("IO的进程数:").append(QString::number(this->USBOccupy)));
+            addLog(QString("IO资源已满:PID = ").append(QString::number(runningProc->getPid())).append("申请IO资源:").append(runningProc->eventType).append("\n\t\t正进行").append(runningProc->eventType).append("IO的进程数:").append(QString::number(this->USBOccupy)));
         }
         break;
     case 2:runningProc->eventType = "PRINTER";
@@ -308,7 +355,7 @@ void Simulator::ramdomlyEvent()
         {
             this->waitingList.append(runningProc);
             refreshWaitingUI();
-            addLog(QString("IO资源已满:PID = ").append(QString::number(runningProc->getPid())).append("申请IO资源:").append(runningProc->eventType).append("\n\t正进行").append(runningProc->eventType).append("IO的进程数:").append(QString::number(this->PrinterOccupy)));
+            addLog(QString("IO资源已满:PID = ").append(QString::number(runningProc->getPid())).append("申请IO资源:").append(runningProc->eventType).append("\n\t\t正进行").append(runningProc->eventType).append("IO的进程数:").append(QString::number(this->PrinterOccupy)));
         }
         break;
     case 3:runningProc->eventType = "DISK";
@@ -324,7 +371,7 @@ void Simulator::ramdomlyEvent()
         {
             this->waitingList.append(runningProc);
             refreshWaitingUI();
-            addLog(QString("IO资源已满:PID = ").append(QString::number(runningProc->getPid())).append("申请IO资源:").append(runningProc->eventType).append("\n\t正进行").append(runningProc->eventType).append("IO的进程数:").append(QString::number(this->DiskOccupy)));
+            addLog(QString("IO资源已满:PID = ").append(QString::number(runningProc->getPid())).append("申请IO资源:").append(runningProc->eventType).append("\n\t\t正进行").append(runningProc->eventType).append("IO的进程数:").append(QString::number(this->DiskOccupy)));
         }
         break;
     case 4:runningProc->eventType = "GRAPHICS";
@@ -340,7 +387,7 @@ void Simulator::ramdomlyEvent()
         {
             this->waitingList.append(runningProc);
             refreshWaitingUI();
-            addLog(QString("IO资源已满:PID = ").append(QString::number(runningProc->getPid())).append("申请IO资源:").append(runningProc->eventType).append("\n\t正进行").append(runningProc->eventType).append("IO的进程数:").append(QString::number(this->GraphicsOccupy)));
+            addLog(QString("IO资源已满:PID = ").append(QString::number(runningProc->getPid())).append("申请IO资源:").append(runningProc->eventType).append("\n\t\t正进行").append(runningProc->eventType).append("IO的进程数:").append(QString::number(this->GraphicsOccupy)));
             addLog(QString("进入Wating队列:PID = ").append(QString::number(runningProc->getPid())).append("申请IO资源:"));
         }
         break;
@@ -356,6 +403,7 @@ void Simulator::refreshWaitingUI()
     QStringList waitingStringList;
     for (int i = 0;i < this->waitingList.length(); i++)
     {
+        waitingList.at(i)->setStatus(3);
         if(startMode == ROUND_ROBIN)
             waitingStringList<<"PID:"+QString::number(waitingList.at(i)->getPid())+"\n"+
                                "剩余时长:"+QString::number(waitingList.at(i)->getCalUseTime())+"            "+
@@ -381,6 +429,7 @@ void Simulator::refreshIOUI()
     QStringList IOStringList;
     for (int i = 0;i < this->IOList.length(); i++)
     {
+        IOList.at(i)->setStatus(4);
         if(startMode == ROUND_ROBIN)
             IOStringList<<"PID:"+QString::number(IOList.at(i)->getPid())+"\n"+
                           "剩余时长:"+QString::number(IOList.at(i)->getCalUseTime())+"         "+
@@ -403,6 +452,7 @@ void Simulator::refreshIOUI()
 
 void Simulator::refreshMemoryUI()
 {
+    ui->label_memoryUsage->setText(QString::number(this->memorySize - getFreeMemorySize()).append(" / ").append(QString::number(this->memorySize)).append(" MB"));
     qDebug()<<"DEBUG::内存监视器刷新"<<endl;
     //从按钮组中删除所有按钮
     for (int i = 0;i < this->displayButtonList->length();i++)
@@ -418,7 +468,14 @@ void Simulator::refreshMemoryUI()
         Partition* partitionToShow = partitionTable.at(i);
 
         QPushButton* displayButton = new QPushButton(this);
-        displayButton->setEnabled(false);
+
+        //连接槽函数
+        //使用lambda表达式传参
+        connect(displayButton, &QPushButton::clicked, this, [=]()
+        {
+            on_btn_displayBtn_clicked(partitionTable.at(i));
+        });
+
         QString statusEmoji;
         if(partitionTable.at(i)->getStatus() == 0)
         {
@@ -436,6 +493,7 @@ void Simulator::refreshMemoryUI()
                 QString::number(partitionToShow->getLength()+partitionTable.at(i)->getStart());
 
         this->displayButtonList->append(displayButton);
+
         displayButton->setText(displayContent);
 
         double posY = ORIGIN_Y+TOTAL_HEIGHT*(1.0*partitionToShow->getStart()/memorySize);
@@ -443,6 +501,8 @@ void Simulator::refreshMemoryUI()
         displayButton->setGeometry(ORIGIN_X,static_cast<int>(posY),
                                    STANDARD_W,static_cast<int>(height));
         displayButton->show();
+
+
     }
 }
 
@@ -488,7 +548,7 @@ void Simulator::loadIOProc(QString IOType)
             waitingList.removeOne(pcb);
             refreshWaitingUI();
             refreshIOUI();
-            addLog("新批准IO:PID = "+QString::number(pcb->getPid())+"\n\t"+"申请IO:"+pcb->eventType);
+            addLog("新批准IO:PID = "+QString::number(pcb->getPid())+"\n\t\t"+"申请IO:"+pcb->eventType);
             if(IOType == "USB")
                 this->USBOccupy++;
             else if(IOType == "PRINTER")
@@ -586,6 +646,7 @@ int Simulator::firstFitAction(PCB* pcb)
         {
             Partition* suitPartition = partitionTable.at(i);
             Partition* newPartition = new Partition(suitPartition->getStart()+pcb->getNeededLength(),suitPartition->getLength()-pcb->getNeededLength(),0);
+            newPartition->associatedPCB = nullptr;
             suitPartition->setLength(pcb->getNeededLength());
             suitPartition->setStatus(1);
             suitPartition->associatedPCB = pcb;
@@ -598,6 +659,8 @@ int Simulator::firstFitAction(PCB* pcb)
     //求取总空闲空间，看看空闲的总内存是否能够满足
     if(this->getFreeMemorySize() >= pcb->getNeededLength())//能
     {
+        addLog(QString("未找到合适区段，但可以收缩分区：PID = ").append(QString::number(pcb->getPid())).append("\n\t\t")
+               .append("所需内存大小:").append(QString::number(pcb->getNeededLength())));
         //收缩内存
         shrinkAction(pcb->getNeededLength());
         //重新递归调用
@@ -616,6 +679,7 @@ void Simulator::releasePartition(int startingPos)
         {
             Partition* partitionToRelease = partitionTable.at(i);
             partitionToRelease->setStatus(0);
+            partitionToRelease->associatedPCB = nullptr;
             //看看后一块空间是不是空的
             if(i + 1 < partitionTable.length() && partitionTable.at(i+1)->getStatus() == 0)//空的，吸纳进来
             {
@@ -625,6 +689,7 @@ void Simulator::releasePartition(int startingPos)
             //看看前一块空间是不是空的
             if(i - 1 >= 0 && partitionTable.at(i-1)->getStatus() == 0)//空的，把这块放到前面去
             {
+                partitionTable.at(i-1)->associatedPCB = nullptr;
                 partitionTable.at(i-1)->setLength(partitionTable.at(i-1)->getLength()+partitionToRelease->getLength());
                 partitionTable.removeAt(i);
             }
@@ -651,7 +716,6 @@ int Simulator::getFreeMemorySize()
 
 void Simulator::shrinkAction(int neededLength)
 {
-    addLog("@@@shrinkAction is CALLED@@@");
     int shrinkedLength = -1;
     int shrinkedStartingPos = -1;
 
@@ -687,6 +751,7 @@ void Simulator::shrinkAction(int neededLength)
                 if(i+1+1 < partitionTable.length() && partitionTable.at(i+1+1)->getStatus() == 0)
                 {
                     partitionTable.at(i+1)->setLength(partitionTable.at(i+1)->getLength() + partitionTable.at(i+1+1)->getLength());
+                    partitionTable.at(i+1)->associatedPCB = nullptr;
                     shrinkedLength = partitionTable.at(i+1)->getLength();
                     shrinkedStartingPos = partitionTable.at(i+1)->getStart();
                     this->partitionTable.removeAt(i+1+1);
@@ -753,7 +818,10 @@ void Simulator::on_pushButton_random_clicked()
 
     do {randTime = qrand()%(maxTime+1);} while (randTime <= 0);
     do {randPID = qrand()%(maxPID+1);} while (randPID <= 0);
-    do {randPriority = qrand()%(maxPriority+1);} while (randTime <= 0);
+
+    if(this->startMode == ROUND_ROBIN){randPriority = -1;}
+    else{do{randPriority = qrand()%(maxPriority+1);} while (randTime <= 0);}
+
     do {randNeededLength = qrand()%(maxNeededLength+1);} while (randNeededLength < minNeededLength);
 
     PCB* newPCB = new PCB(randPID,randTime,randPriority,randNeededLength);
@@ -761,18 +829,6 @@ void Simulator::on_pushButton_random_clicked()
     this->backupProcList.append(newPCB);
     this->loadProc();
     this->refreshBackupUI();
-
-    //    if(readyList.length() < MAX_PROGRAM_AMOUNT)
-    //    {
-    //        addLog(QString("装载进程：PID = ").append(QString::number(newPCB->getPid())).append("至Ready队列"));
-    //        this->readyList.append(newPCB);
-    //        refreshReadyUI();
-    //    }
-    //    else
-    //    {
-    //        this->backupProcList.append(newPCB);
-    //        refreshBackupUI();
-    //    }
 }
 
 void Simulator::addLog(QString content)
@@ -1041,12 +1097,12 @@ void Simulator::roundRobinAction()
         this->runningProc->usedTimeSliceInc();
         refreshRunningUI();
         addLog("PID:"+QString::number(runningProc->getPid())+" -> 运行了一个时间单位"+"\n\t\t"
-               "剩余运行时间:"+QString::number(runningProc->getCalUseTime())+"\n\t\t"+
+                                                                             "剩余运行时间:"+QString::number(runningProc->getCalUseTime())+"\n\t\t"+
                "剩余时间片:"+QString::number(this->TIME_SLICE - runningProc->getUsedTimeSlice()));
         if(runningProc->isTerminated())
         {
             addLog("PID:"+QString::number(runningProc->getPid())+" -> 现已终结"+"\n\t\t"
-            "总耗时:"+QString::number(runningProc->getNeededTime()));
+                                                                            "总耗时:"+QString::number(runningProc->getNeededTime()));
             this->terminatedList.append(runningProc);
 
             //释放内存
@@ -1181,6 +1237,8 @@ void Simulator::on_pushButton_suspend_clicked()
                 this->suspendedList.append(pcb);
                 readyList.removeOne(pcb);
                 refreshReadyUI();
+                this->releasePartition(pcb->getStartingPos());
+                loadProc();
                 break;
             }
         }
@@ -1197,8 +1255,10 @@ void Simulator::on_pushButton_suspend_clicked()
             if(runningProc->getPid() == pid.toInt())
             {
                 this->suspendedList.append(this->runningProc);
+                this->releasePartition(runningProc->getStartingPos());
                 runningProc = nullptr;
                 resetRunningUI();
+                loadProc();
                 break;
             }
         }
@@ -1240,7 +1300,8 @@ void Simulator::on_pushButton_suspend_off_clicked()
             {
                 if(pcb->getPid() == pid.toInt())
                 {
-                    this->readyList.append(pcb);
+                    this->backupProcList.append(pcb);
+                    this->loadProc();
                     suspendedList.removeOne(pcb);
                     refreshReadyUI();
                     refreshSuspendedUI();
@@ -1251,7 +1312,6 @@ void Simulator::on_pushButton_suspend_off_clicked()
         ui->listView_suspended->selectionModel()->clear();
         return;
     }
-
 }
 
 void Simulator::on_pushButton_auto_stop_clicked()
@@ -1287,6 +1347,17 @@ void Simulator::on_spinBox_maxProcAmount_valueChanged(const QString &arg1)
 void Simulator::on_lineEdit_timeScale_textChanged(const QString &arg1)
 {
     this->timer->stop();
+    if(!arg1.isEmpty() && arg1.toInt() <= 0)
+    {
+        QMessageBox::information(nullptr,"错误❌",QString("输入值不允许≤0"));
+        ui->lineEdit_timeScale->setText(QString::number(this->timeScale));
+        return;
+    }
+    if(arg1.isEmpty() || arg1.isNull())
+    {
+        timer->stop();
+        return;
+    }
     this->timeScale = arg1.toInt();
     this->timer->start(this->timeScale);
 }
@@ -1313,4 +1384,14 @@ void Simulator::on_btn_min_clicked()
 void Simulator::on_btn_close_clicked()
 {
     exit(0);
+}
+
+void Simulator::on_btn_displayBtn_clicked(Partition* partitionToShow)
+{
+    qDebug()<<"DEBUG::CLICKED!!!"<<partitionToShow->getStart()<<endl;
+
+    PartitionDetails* partitionDetails = new PartitionDetails();
+    connect(this,SIGNAL(sendPartitionDetails(Partition*)),partitionDetails,SLOT(setDisplayPartition(Partition*)));
+    emit sendPartitionDetails(partitionToShow);
+    partitionDetails->show();
 }

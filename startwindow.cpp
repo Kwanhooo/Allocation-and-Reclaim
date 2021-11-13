@@ -11,6 +11,7 @@ StartWindow::StartWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     this->setWindowTitle("启动 - PowerSimulator");
+    this->setFixedSize(this->width(),this->height());
     this->setWindowFlag(Qt::FramelessWindowHint);
     ui->titleBarGroup->setAlignment(Qt::AlignRight);
 

@@ -6,9 +6,11 @@
 #include <QThread>
 #include <QButtonGroup>
 #include <QPushButton>
+#include <QMessageBox>
 
 #include "pcb.h"
 #include "partition.h"
+#include "partitiondetails.h"
 
 #define PREEMPTIVE_PRIORITY 1195
 #define NON_PRIORITY 1196
@@ -35,6 +37,7 @@ public:
     const int memorySize = 64;//Bytes
     const int minNeededLength = 10;//Bytes
     const int maxNeededLength = 20;//Bytes
+
     //内存监视器相关
     const int ORIGIN_X = 1128;
     const int ORIGIN_Y = 42;
@@ -77,13 +80,10 @@ private slots:
     void on_spinBox_timeSlice_valueChanged(int arg1);
     void on_spinBox_maxProcAmount_valueChanged(const QString &arg1);
     void on_lineEdit_timeScale_textChanged(const QString &arg1);
-
     void on_pushButton_clicked();
-
     void on_btn_min_clicked();
-
     void on_btn_close_clicked();
-
+    void on_btn_displayBtn_clicked(Partition* partitionToShow);
 
 protected:
     //鼠标事件重写标示
@@ -168,6 +168,9 @@ signals:
     //鼠标事件信号
     void mouseButtonMove(QPoint pos);
     void signalMainWindowMove();
+
+    //查看分区详情
+    void sendPartitionDetails(Partition* partititon);
 };
 
 #endif // SIMULATOR_H
