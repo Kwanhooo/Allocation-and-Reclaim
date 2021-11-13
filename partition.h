@@ -1,10 +1,13 @@
 #ifndef PARTITION_H
 #define PARTITION_H
 
+#include "pcb.h"
+
 class Partition {
 private:
     int start;
     int length;
+
 
     /*
      * 0 -> 未分
@@ -12,6 +15,8 @@ private:
      */
     int status;
 public:
+    PCB* associatedPCB;
+
     int getStart() const;
 
     void setStart(int start);
@@ -23,6 +28,7 @@ public:
     int getStatus() const;
 
     void setStatus(int status);
+
 
 public:
     Partition();

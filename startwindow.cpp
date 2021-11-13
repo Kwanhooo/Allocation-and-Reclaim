@@ -10,6 +10,9 @@ StartWindow::StartWindow(QWidget *parent) :
     ui(new Ui::StartWindow)
 {
     ui->setupUi(this);
+    this->setWindowTitle("启动 - PowerSimulator");
+    this->setWindowFlag(Qt::FramelessWindowHint);
+    ui->titleBarGroup->setAlignment(Qt::AlignRight);
 
     //实现单选
     QButtonGroup *buttonGround = new QButtonGroup();
@@ -17,6 +20,9 @@ StartWindow::StartWindow(QWidget *parent) :
     buttonGround->addButton(ui->radioButton_preemptive);
     buttonGround->addButton(ui->radioButton_rr);
     buttonGround->setExclusive(true);
+
+    //默认非抢占式优先权调度
+    ui->radioButton_non->setChecked(true);
 }
 
 StartWindow::~StartWindow()
@@ -43,6 +49,55 @@ void StartWindow::on_pushButton_start_clicked()
 }
 
 void StartWindow::on_pushButton_exit_clicked()
+{
+    exit(0);
+}
+
+
+/*
+ * 以下代码段为隐藏标题栏之后，重写的鼠标事件
+ */
+void StartWindow::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton)
+    {
+        m_Drag = true;
+        m_DragPosition = event->globalPos() - this->pos();
+        event->accept();
+    }
+    QWidget::mousePressEvent(event);
+}
+
+
+void StartWindow::mouseMoveEvent(QMouseEvent *event)
+{
+    if (m_Drag && (event->buttons() && Qt::LeftButton))
+    {
+        move(event->globalPos() - m_DragPosition);
+        event->accept();
+        emit mouseButtonMove(event->globalPos() - m_DragPosition);
+        emit signalMainWindowMove();
+    }
+    QWidget::mouseMoveEvent(event);
+}
+
+
+void StartWindow::mouseReleaseEvent(QMouseEvent *event)
+{
+    Q_UNUSED(event);
+    m_Drag = false;
+    QWidget::mouseReleaseEvent(event);
+}
+
+
+//最小化这个窗口
+void StartWindow::on_btn_min_clicked()
+{
+    this->setWindowState(Qt::WindowMinimized);
+}
+
+//关闭这个窗口
+void StartWindow::on_btn_close_clicked()
 {
     exit(0);
 }
