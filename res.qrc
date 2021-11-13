@@ -5,5 +5,11 @@
         <file>res/icon.png</file>
         <file>res/rotation.png</file>
         <file>res/io.png</file>
+        <file>res/details.png</file>
+        <file>res/process.png</file>
+        <file>res/terminal.png</file>
+        <file>res/monitor.png</file>
+        <file>res/log.png</file>
+        <file>res/memory.png</file>
     </qresource>
 </RCC>

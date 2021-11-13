@@ -30,19 +30,22 @@ SOURCES += \
     processcreate.cpp \
     simulator.cpp \
     startwindow.cpp \
-    partition.cpp
+    partition.cpp \
+    partitiondetails.cpp
 
 HEADERS += \
     pcb.h \
     processcreate.h \
     simulator.h \
     startwindow.h \
-    partition.h
+    partition.h \
+    partitiondetails.h
 
 FORMS += \
     processcreate.ui \
     simulator.ui \
-    startwindow.ui
+    startwindow.ui \
+    partitiondetails.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

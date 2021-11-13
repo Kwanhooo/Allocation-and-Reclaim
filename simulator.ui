@@ -37,6 +37,7 @@
     <property name="font">
      <font>
       <family>微软雅黑</family>
+      <pointsize>9</pointsize>
      </font>
     </property>
    </widget>
@@ -52,6 +53,7 @@
     <property name="font">
      <font>
       <family>微软雅黑</family>
+      <pointsize>9</pointsize>
      </font>
     </property>
    </widget>
@@ -67,6 +69,7 @@
     <property name="font">
      <font>
       <family>微软雅黑</family>
+      <pointsize>9</pointsize>
      </font>
     </property>
    </widget>
@@ -82,6 +85,7 @@
     <property name="font">
      <font>
       <family>微软雅黑</family>
+      <pointsize>9</pointsize>
      </font>
     </property>
    </widget>
@@ -202,6 +206,7 @@
     <property name="font">
      <font>
       <family>微软雅黑</family>
+      <pointsize>9</pointsize>
      </font>
     </property>
    </widget>
@@ -238,6 +243,7 @@
     <property name="font">
      <font>
       <family>微软雅黑</family>
+      <pointsize>9</pointsize>
      </font>
     </property>
    </widget>
@@ -274,6 +280,7 @@
     <property name="font">
      <font>
       <family>微软雅黑</family>
+      <pointsize>9</pointsize>
      </font>
     </property>
    </widget>
@@ -969,6 +976,7 @@
     <property name="font">
      <font>
       <family>微软雅黑</family>
+      <pointsize>9</pointsize>
      </font>
     </property>
    </widget>
@@ -1010,7 +1018,7 @@
   <widget class="QLabel" name="label_memoryMonitor">
    <property name="geometry">
     <rect>
-     <x>1120</x>
+     <x>1111</x>
      <y>-3</y>
      <width>141</width>
      <height>51</height>
@@ -1111,6 +1119,95 @@ QPushButton:hover{
     </item>
    </layout>
   </widget>
+  <widget class="QLabel" name="label_memoryUsage">
+   <property name="geometry">
+    <rect>
+     <x>1255</x>
+     <y>0</y>
+     <width>100</width>
+     <height>50</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Cascadia Code</family>
+     <pointsize>11</pointsize>
+     <weight>75</weight>
+     <italic>true</italic>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>used/unused</string>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>130</x>
+     <y>11</y>
+     <width>25</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">image: url(:/res/monitor.png);</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>88</x>
+     <y>565</y>
+     <width>25</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">image: url(:/res/terminal.png);</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_3">
+   <property name="geometry">
+    <rect>
+     <x>615</x>
+     <y>564</y>
+     <width>25</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">image: url(:/res/log.png);</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_4">
+   <property name="geometry">
+    <rect>
+     <x>1220</x>
+     <y>12</y>
+     <width>25</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">image: url(:/res/memory.png);</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
   <zorder>groupBox_monitor</zorder>
   <zorder>label_monitor</zorder>
   <zorder>groupBox_processOperation</zorder>
@@ -1120,6 +1217,11 @@ QPushButton:hover{
   <zorder>groupBox</zorder>
   <zorder>label_memoryMonitor</zorder>
   <zorder>layoutWidget</zorder>
+  <zorder>label_memoryUsage</zorder>
+  <zorder>label</zorder>
+  <zorder>label_2</zorder>
+  <zorder>label_3</zorder>
+  <zorder>label_4</zorder>
  </widget>
  <resources/>
  <connections/>

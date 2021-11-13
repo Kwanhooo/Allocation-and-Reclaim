@@ -106,8 +106,8 @@
      <font>
       <family>苹方-简</family>
       <pointsize>10</pointsize>
-      <weight>50</weight>
-      <bold>false</bold>
+      <weight>75</weight>
+      <bold>true</bold>
      </font>
     </property>
     <property name="text">
@@ -127,8 +127,8 @@
      <font>
       <family>苹方-简</family>
       <pointsize>10</pointsize>
-      <weight>50</weight>
-      <bold>false</bold>
+      <weight>75</weight>
+      <bold>true</bold>
      </font>
     </property>
     <property name="text">
