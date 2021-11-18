@@ -3,8 +3,6 @@
 
 #include "simulator.h"
 
-#include <QButtonGroup>
-
 StartWindow::StartWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::StartWindow)
@@ -14,6 +12,15 @@ StartWindow::StartWindow(QWidget *parent) :
     this->setFixedSize(this->width(),this->height());
     this->setWindowFlag(Qt::FramelessWindowHint);
     ui->titleBarGroup->setAlignment(Qt::AlignRight);
+
+    QBitmap bmp(this->size());
+    bmp.fill();
+    QPainter p(&bmp);
+    p.setRenderHint(QPainter::Antialiasing); // 反锯齿;
+    p.setPen(Qt::transparent);
+    p.setBrush(Qt::black);
+    p.drawRoundedRect(bmp.rect(), 15, 15);
+    setMask(bmp);
 
     //实现单选
     QButtonGroup *buttonGround = new QButtonGroup();
@@ -72,7 +79,7 @@ void StartWindow::mousePressEvent(QMouseEvent *event)
 
 void StartWindow::mouseMoveEvent(QMouseEvent *event)
 {
-    if (m_Drag && (event->buttons() && Qt::LeftButton))
+    if (m_Drag && (event->buttons() && static_cast<bool>(Qt::LeftButton)))
     {
         move(event->globalPos() - m_DragPosition);
         event->accept();

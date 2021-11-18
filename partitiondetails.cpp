@@ -56,9 +56,15 @@ void PartitionDetails::setupDisplayData()
 
     QString statusEmoji;
     if(partition->getStatus() == 0)
+    {
+        this->setStyleSheet("background:#BDCC94;");
         statusEmoji = "🔑 空闲";
+    }
     else
+    {
+        this->setStyleSheet("background:#FF7B5A;");
         statusEmoji = "🔒 占用";
+    }
 
     ui->lineEdit_partitionStatus->setText(statusEmoji);
 
@@ -112,7 +118,7 @@ void PartitionDetails::setupDisplayData()
 
 void PartitionDetails::mouseMoveEvent(QMouseEvent *event)
 {
-    if (m_Drag && (event->buttons() && Qt::LeftButton))
+    if (m_Drag && (event->buttons() && static_cast<bool>(Qt::LeftButton)))
     {
         move(event->globalPos() - m_DragPosition);
         event->accept();

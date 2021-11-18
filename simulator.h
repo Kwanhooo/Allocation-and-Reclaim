@@ -8,6 +8,9 @@
 #include <QPushButton>
 #include <QMessageBox>
 
+#include <QBitmap>
+#include <QPainter>
+
 #include "pcb.h"
 #include "partition.h"
 #include "partitiondetails.h"
@@ -26,7 +29,7 @@ class Simulator : public QWidget
 
 public:
     explicit Simulator(QWidget *parent = nullptr);
-    ~Simulator();
+    ~Simulator() override;
 
     //参数
     const int maxPID = 100000;
@@ -34,6 +37,7 @@ public:
     const int maxPriority = 63;
     const int agingTime = 30;
 
+    //内存相关
     const int memorySize = 64;//Bytes
     const int minNeededLength = 10;//Bytes
     const int maxNeededLength = 20;//Bytes
@@ -82,8 +86,10 @@ private slots:
     void on_lineEdit_timeScale_textChanged(const QString &arg1);
     void on_pushButton_clicked();
     void on_btn_min_clicked();
-    void on_btn_close_clicked();
+    void on_btn_close_clicked() __attribute__((noreturn));
     void on_btn_displayBtn_clicked(Partition* partitionToShow);
+
+    void on_pushButton_reboot_clicked();
 
 protected:
     //鼠标事件重写标示

@@ -3,6 +3,9 @@
 
 #include <QMainWindow>
 
+#include <QBitmap>
+#include <QPainter>
+
 #define PREEMPTIVE_PRIORITY 1195
 #define NON_PRIORITY 1196
 #define ROUND_ROBIN 1197
@@ -20,7 +23,7 @@ signals:
 
 public:
     explicit StartWindow(QWidget *parent = nullptr);
-    ~StartWindow();
+    ~StartWindow() override;
 
 protected:
     //鼠标事件重写标示
@@ -30,11 +33,9 @@ protected:
 
 private slots:
     void on_pushButton_start_clicked();
-    void on_pushButton_exit_clicked();
-
+    void on_pushButton_exit_clicked() __attribute__((noreturn));
     void on_btn_min_clicked();
-
-    void on_btn_close_clicked();
+    void on_btn_close_clicked() __attribute__((noreturn));
 
 private:
     Ui::StartWindow *ui;

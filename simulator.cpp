@@ -1,6 +1,7 @@
 #include "simulator.h"
 #include "ui_simulator.h"
 #include "processcreate.h"
+#include "startwindow.h"
 
 #include <QDebug>
 #include <QTime>
@@ -18,6 +19,15 @@ Simulator::Simulator(QWidget *parent) :
     this->setWindowFlag(Qt::FramelessWindowHint);
     ui->titleBarGroup->setAlignment(Qt::AlignRight);
     this->setFixedSize(this->width(),this->height());
+
+    QBitmap bmp(this->size());
+    bmp.fill();
+    QPainter p(&bmp);
+    p.setRenderHint(QPainter::Antialiasing); // 反锯齿;
+    p.setPen(Qt::transparent);
+    p.setBrush(Qt::black);
+    p.drawRoundedRect(bmp.rect(), 15, 15);
+    setMask(bmp);
 
     this->runningProc = nullptr;
     this->USBOccupy = 0;
@@ -52,6 +62,11 @@ Simulator::Simulator(QWidget *parent) :
     this->refreshMemoryUI();
 }
 
+Simulator::~Simulator()
+{
+    delete this->runningProc;
+    delete ui;
+}
 
 /*
  * 以下代码段为隐藏标题栏之后，重写的鼠标事件
@@ -70,7 +85,7 @@ void Simulator::mousePressEvent(QMouseEvent *event)
 
 void Simulator::mouseMoveEvent(QMouseEvent *event)
 {
-    if (m_Drag && (event->buttons() && Qt::LeftButton))
+    if (m_Drag && (event->buttons() && static_cast<bool>(Qt::LeftButton)))
     {
         move(event->globalPos() - m_DragPosition);
         event->accept();
@@ -103,11 +118,6 @@ void Simulator::setupSimulator(int startMode)
     addLog(QString("Simulator已以\""+startModeStr+"\"模式加载启动"));
 }
 
-Simulator::~Simulator()
-{
-    delete ui;
-}
-
 //按照优先级字段排序
 bool comparePriority(PCB* pcb_a,PCB* pcb_b)
 {
@@ -132,13 +142,15 @@ void Simulator::refreshReadyUI()
             readyStringList<<"PID:"+QString::number(readyList.at(i)->getPid())+"\n"+
                              "剩余运行时长:"+QString::number(readyList.at(i)->getCalUseTime())+"\n"+
                              "起始地址:"+QString::number(readyList.at(i)->getStartingPos())+"\n"+
-                             "占用内存:"+QString::number(readyList.at(i)->getNeededLength())+"\n";
+                             "占用内存:"+QString::number(readyList.at(i)->getNeededLength())+"\n"
+                             +"————————————————";
         else
             readyStringList<<"PID:"+QString::number(readyList.at(i)->getPid())+"\n"+
                              "剩余运行时长:"+QString::number(readyList.at(i)->getCalUseTime())+"\n"
                                                                                          "优先级:"+QString::number(readyList.at(i)->getPriority())+"\n"+
                              "起始地址:"+QString::number(readyList.at(i)->getStartingPos())+"\n"+
-                             "占用内存:"+QString::number(readyList.at(i)->getNeededLength())+"\n";
+                             "占用内存:"+QString::number(readyList.at(i)->getNeededLength())+"\n"
+                             +"————————————————";
     }
     QStringListModel* readyStringListModel = new QStringListModel(readyStringList);
     ui->listView_ready->setModel(readyStringListModel);
@@ -184,11 +196,13 @@ void Simulator::refreshTerminatedUI()
         terminatedList.at(i)->setStatus(6);
         if(startMode == ROUND_ROBIN)
             terminatedStringList<<"PID:"+QString::number(terminatedList.at(i)->getPid())+"\n"+
-                                  "总消耗时长:"+QString::number(terminatedList.at(i)->getNeededTime())+"\n";
+                                  "总消耗时长:"+QString::number(terminatedList.at(i)->getNeededTime())+"\n"
+                                  +"————————————————";
         else
             terminatedStringList<<"PID:"+QString::number(terminatedList.at(i)->getPid())+"\n"+
                                   "总消耗时长:"+QString::number(terminatedList.at(i)->getNeededTime())+"\n"
-                                                                                                  "优先级:"+QString::number(terminatedList.at(i)->getPriority())+"\n";
+                                                                                                  "优先级:"+QString::number(terminatedList.at(i)->getPriority())+"\n"
+                                  +"————————————————";
     }
     QStringListModel* terminatedStringListModel = new QStringListModel(terminatedStringList);
     ui->listView_terminated->setModel(terminatedStringListModel);
@@ -211,12 +225,14 @@ void Simulator::refreshBackupUI()
         if(startMode == ROUND_ROBIN)
             backupProcStringList<<"PID:"+QString::number(backupProcList.at(i)->getPid())+"\n"+
                                   "所需时长:"+QString::number(backupProcList.at(i)->getNeededTime())+"\n"+
-                                  "所需内存:"+QString::number(backupProcList.at(i)->getNeededLength())+"\n";
+                                  "所需内存:"+QString::number(backupProcList.at(i)->getNeededLength())+"\n"
+                                  +"————————————————";
         else
             backupProcStringList<<"PID:"+QString::number(backupProcList.at(i)->getPid())+"\n"+
                                   "所需时长:"+QString::number(backupProcList.at(i)->getNeededTime())+"\n"
                                                                                                  "优先级:"+QString::number(backupProcList.at(i)->getPriority())+"\n"+
-                                  "所需内存:"+QString::number(backupProcList.at(i)->getNeededLength())+"\n";
+                                  "所需内存:"+QString::number(backupProcList.at(i)->getNeededLength())+"\n"
+                                  +"————————————————";
     }
     QStringListModel* backupProcStringListModel = new QStringListModel(backupProcStringList);
     ui->listView_backup->setModel(backupProcStringListModel);
@@ -298,11 +314,13 @@ void Simulator::refreshSuspendedUI()
         suspendedList.at(i)->setStatus(5);
         if(startMode == ROUND_ROBIN)
             suspendedStringList<<"PID:"+QString::number(suspendedList.at(i)->getPid())+"\n"+
-                                 "所需时长:"+QString::number(suspendedList.at(i)->getCalUseTime())+"\n";
+                                 "所需时长:"+QString::number(suspendedList.at(i)->getCalUseTime())+"\n"
+                                 +"————————————————";
         else
             suspendedStringList<<"PID:"+QString::number(suspendedList.at(i)->getPid())+"\n"+
                                  "所需时长:"+QString::number(suspendedList.at(i)->getCalUseTime())+"\n"
-                                                                                               "优先级:"+QString::number(suspendedList.at(i)->getPriority())+"\n";
+                                                                                               "优先级:"+QString::number(suspendedList.at(i)->getPriority())+"\n"
+                                 +"————————————————";
     }
     QStringListModel* suspendedStringListModel = new QStringListModel(suspendedStringList);
     ui->listView_suspended->setModel(suspendedStringListModel);
@@ -315,7 +333,7 @@ void Simulator::ramdomlyEvent()
         return;
     QTime t;
     t=QTime::currentTime();
-    qsrand(QTime::currentTime().msec()*qrand()*qrand()*qrand()*qrand()*qrand()*qrand());
+    qsrand(static_cast<uint>(QTime::currentTime().msec()*qrand()*qrand()*qrand()*qrand()*qrand()*qrand()));
     int n = qrand()%100 + 1;
     qDebug()<<"DEBUG::是不是生成了随机IO呢?  "<<n<<"  "<<(n<=this->randomlyEventRate);
     bool isGenerate = n <= this->randomlyEventRate?true:false;
@@ -408,13 +426,15 @@ void Simulator::refreshWaitingUI()
             waitingStringList<<"PID:"+QString::number(waitingList.at(i)->getPid())+"\n"+
                                "剩余时长:"+QString::number(waitingList.at(i)->getCalUseTime())+"            "+
                                "申请IO:"+waitingList.at(i)->eventType+"\n"+
-                               "占用内存:"+QString::number(waitingList.at(i)->getNeededLength())+"\n";
+                               "占用内存:"+QString::number(waitingList.at(i)->getNeededLength())+"\n"
+                               +"————————————————";
         else
             waitingStringList<<"PID:"+QString::number(waitingList.at(i)->getPid())+"\n"+
                                "剩余时长:"+QString::number(waitingList.at(i)->getCalUseTime())+"            "+
                                "申请IO:"+waitingList.at(i)->eventType+"\n"+
                                "优先级:"+QString::number(waitingList.at(i)->getPriority())+"\n";
-        "占用内存:"+QString::number(waitingList.at(i)->getNeededLength())+"\n";
+        "占用内存:"+QString::number(waitingList.at(i)->getNeededLength())+"\n"
+                +"————————————————";
     }
     QStringListModel* waitingStringListModel = new QStringListModel(waitingStringList);
     ui->listView_waiting->setModel(waitingStringListModel);
@@ -435,14 +455,16 @@ void Simulator::refreshIOUI()
                           "剩余时长:"+QString::number(IOList.at(i)->getCalUseTime())+"         "+
                           "申请IO:"+IOList.at(i)->eventType+"\n"+
                           "起始地址:"+QString::number(IOList.at(i)->getStartingPos())+"\n"+
-                          "占用内存:"+QString::number(IOList.at(i)->getNeededLength())+"\n";
+                          "占用内存:"+QString::number(IOList.at(i)->getNeededLength())+"\n"
+                          +"————————————————";
         else
             IOStringList<<"PID:"+QString::number(IOList.at(i)->getPid())+"\n"+
                           "剩余时长:"+QString::number(IOList.at(i)->getCalUseTime())+"         "+
                           "申请IO:"+IOList.at(i)->eventType+"\n"+
                           "优先级:"+QString::number(IOList.at(i)->getPriority())+"\n"+
                           "起始地址:"+QString::number(IOList.at(i)->getStartingPos())+"\n"+
-                          "占用内存:"+QString::number(IOList.at(i)->getNeededLength())+"\n";
+                          "占用内存:"+QString::number(IOList.at(i)->getNeededLength())+"\n"
+                          +"——————————————————"+"\n";
     }
     QStringListModel* IOStringListModel = new QStringListModel(IOStringList);
     ui->listView_IO->setModel(IOStringListModel);
@@ -633,6 +655,7 @@ void Simulator::automaticRun()
 
 int Simulator::firstFitAction(PCB* pcb)
 {
+    firstAgain:
     //遍历一次分区表，找到第一个放得下的位置
     for (int i = 0;i < this->partitionTable.length();i++)
     {
@@ -663,8 +686,8 @@ int Simulator::firstFitAction(PCB* pcb)
                .append("所需内存大小:").append(QString::number(pcb->getNeededLength())));
         //收缩内存
         shrinkAction(pcb->getNeededLength());
-        //重新递归调用
-        firstFitAction(pcb);
+        //重新扫描分区
+        goto firstAgain;
     }
     else//不能
         return -1;
@@ -810,7 +833,7 @@ void Simulator::on_pushButton_custom_clicked()
 
 void Simulator::on_pushButton_random_clicked()
 {
-    qsrand(QTime::currentTime().msec()*qrand()*qrand()*qrand()*qrand()*qrand()*qrand());
+    qsrand(static_cast<uint>(QTime::currentTime().msec()*qrand()*qrand()*qrand()*qrand()*qrand()*qrand()));
     int randPID;
     int randTime;
     int randPriority;
@@ -1394,4 +1417,13 @@ void Simulator::on_btn_displayBtn_clicked(Partition* partitionToShow)
     connect(this,SIGNAL(sendPartitionDetails(Partition*)),partitionDetails,SLOT(setDisplayPartition(Partition*)));
     emit sendPartitionDetails(partitionToShow);
     partitionDetails->show();
+}
+
+
+void Simulator::on_pushButton_reboot_clicked()
+{
+    StartWindow* startWindow = new StartWindow();
+    startWindow->show();
+    this->hide();
+    delete this;
 }

@@ -3,9 +3,8 @@
 
 #include <QMouseEvent>
 #include <QWidget>
+
 #include "partition.h"
-
-
 
 namespace Ui {
 class PartitionDetails;
@@ -17,7 +16,7 @@ class PartitionDetails : public QWidget
 
 public:
     explicit PartitionDetails(QWidget *parent = nullptr);
-    ~PartitionDetails();
+    ~PartitionDetails() override;
 
 public slots:
     void setDisplayPartition(Partition* partitionToShow);

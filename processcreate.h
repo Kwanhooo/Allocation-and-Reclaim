@@ -20,7 +20,7 @@ signals:
 
 public:
     explicit ProcessCreate(QWidget *parent = nullptr);
-    ~ProcessCreate();
+    ~ProcessCreate() override;
 
 protected:
     //鼠标事件重写标示

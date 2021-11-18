@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
@@ -140,9 +143,9 @@ QPushButton:hover{
    <widget class="QLineEdit" name="lineEdit_partitionStatus">
     <property name="geometry">
      <rect>
-      <x>70</x>
+      <x>75</x>
       <y>90</y>
-      <width>200</width>
+      <width>195</width>
       <height>23</height>
      </rect>
     </property>
@@ -167,6 +170,14 @@ QPushButton:hover{
       <height>23</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
     <property name="text">
      <string>状      态:</string>
     </property>
@@ -174,9 +185,9 @@ QPushButton:hover{
    <widget class="QLineEdit" name="lineEdit_length">
     <property name="geometry">
      <rect>
-      <x>70</x>
+      <x>75</x>
       <y>60</y>
-      <width>200</width>
+      <width>195</width>
       <height>23</height>
      </rect>
     </property>
@@ -201,6 +212,14 @@ QPushButton:hover{
       <height>23</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
     <property name="text">
      <string>长      度:</string>
     </property>
@@ -208,9 +227,9 @@ QPushButton:hover{
    <widget class="QLineEdit" name="lineEdit_startingPos">
     <property name="geometry">
      <rect>
-      <x>70</x>
+      <x>75</x>
       <y>30</y>
-      <width>200</width>
+      <width>195</width>
       <height>23</height>
      </rect>
     </property>
@@ -235,8 +254,16 @@ QPushButton:hover{
       <height>23</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
     <property name="text">
-     <string>起始地址:</string>
+     <string>地      址:</string>
     </property>
    </widget>
   </widget>
@@ -263,9 +290,9 @@ QPushButton:hover{
    <widget class="QLineEdit" name="lineEdit_PID">
     <property name="geometry">
      <rect>
-      <x>70</x>
+      <x>75</x>
       <y>30</y>
-      <width>200</width>
+      <width>195</width>
       <height>23</height>
      </rect>
     </property>
@@ -290,6 +317,14 @@ QPushButton:hover{
       <height>23</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
     <property name="text">
      <string>PID:</string>
     </property>
@@ -297,9 +332,9 @@ QPushButton:hover{
    <widget class="QLineEdit" name="lineEdit_neededMemory">
     <property name="geometry">
      <rect>
-      <x>70</x>
+      <x>75</x>
       <y>60</y>
-      <width>200</width>
+      <width>195</width>
       <height>23</height>
      </rect>
     </property>
@@ -324,6 +359,14 @@ QPushButton:hover{
       <height>23</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
     <property name="text">
      <string>占用内存:</string>
     </property>
@@ -331,9 +374,9 @@ QPushButton:hover{
    <widget class="QLineEdit" name="lineEdit_neededTime">
     <property name="geometry">
      <rect>
-      <x>70</x>
+      <x>75</x>
       <y>90</y>
-      <width>200</width>
+      <width>195</width>
       <height>23</height>
      </rect>
     </property>
@@ -358,6 +401,14 @@ QPushButton:hover{
       <height>23</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
     <property name="text">
      <string>所需时间:</string>
     </property>
@@ -365,9 +416,9 @@ QPushButton:hover{
    <widget class="QLineEdit" name="lineEdit_procStatus">
     <property name="geometry">
      <rect>
-      <x>70</x>
+      <x>75</x>
       <y>150</y>
-      <width>200</width>
+      <width>195</width>
       <height>23</height>
      </rect>
     </property>
@@ -392,6 +443,14 @@ QPushButton:hover{
       <height>23</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
     <property name="text">
      <string>状态:</string>
     </property>
@@ -399,9 +458,9 @@ QPushButton:hover{
    <widget class="QLineEdit" name="lineEdit_calTime">
     <property name="geometry">
      <rect>
-      <x>70</x>
+      <x>75</x>
       <y>120</y>
-      <width>200</width>
+      <width>195</width>
       <height>23</height>
      </rect>
     </property>
@@ -426,6 +485,14 @@ QPushButton:hover{
       <height>23</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
     <property name="text">
      <string>剩余时间:</string>
     </property>
@@ -433,9 +500,9 @@ QPushButton:hover{
    <widget class="QLineEdit" name="lineEdit_priority">
     <property name="geometry">
      <rect>
-      <x>70</x>
+      <x>75</x>
       <y>180</y>
-      <width>200</width>
+      <width>195</width>
       <height>23</height>
      </rect>
     </property>
@@ -459,6 +526,14 @@ QPushButton:hover{
       <width>61</width>
       <height>23</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
     <property name="text">
      <string>优先级:</string>
