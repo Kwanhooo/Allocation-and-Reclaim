@@ -41,6 +41,7 @@ public:
     const int memorySize = 64;//Bytes
     const int minNeededLength = 10;//Bytes
     const int maxNeededLength = 20;//Bytes
+    const int systemReservedLength = 16;//Bytes
 
     //内存监视器相关
     const int ORIGIN_X = 1128;
@@ -143,8 +144,10 @@ private:
     void refreshWaitingUI();
     void refreshIOUI();
 
-    //内存监视器相关
+    //内存相关
     void refreshMemoryUI();
+    void initSystemMemory();
+
 
     void loadProc();//从后备队列里面载入新的进程
 

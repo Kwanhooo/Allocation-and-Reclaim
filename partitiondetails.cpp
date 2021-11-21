@@ -60,6 +60,11 @@ void PartitionDetails::setupDisplayData()
         this->setStyleSheet("background:#BDCC94;");
         statusEmoji = "🔑 空闲";
     }
+    else if(partition->associatedPCB->getPid()==-1)
+    {
+        this->setStyleSheet("background:#FF665A");
+        statusEmoji = "🖥️ 系统保留内存";
+    }
     else
     {
         this->setStyleSheet("background:#FF7B5A;");
@@ -75,10 +80,20 @@ void PartitionDetails::setupDisplayData()
     }
     else
     {
-        ui->lineEdit_PID->setText(QString::number(partition->associatedPCB->getPid()));
+
         ui->lineEdit_neededMemory->setText(QString::number(partition->associatedPCB->getNeededLength()));
-        ui->lineEdit_neededTime->setText(QString::number(partition->associatedPCB->getNeededTime()));
-        ui->lineEdit_calTime->setText(QString::number(partition->associatedPCB->getCalUseTime()));
+        if(partition->associatedPCB->getPid() == -1)
+        {
+            ui->lineEdit_PID->setText("SYSTEM");
+            ui->lineEdit_neededTime->setText("♾️");
+            ui->lineEdit_calTime->setText("♾️");
+        }
+        else
+        {
+            ui->lineEdit_PID->setText(QString::number(partition->associatedPCB->getPid()));
+            ui->lineEdit_neededTime->setText(QString::number(partition->associatedPCB->getNeededTime()));
+            ui->lineEdit_calTime->setText(QString::number(partition->associatedPCB->getCalUseTime()));
+        }
 
         /*
          * 0 -> backup
@@ -92,21 +107,28 @@ void PartitionDetails::setupDisplayData()
         QString procStatusEmoji;
         switch (partition->associatedPCB->getStatus())
         {
-            case 1:procStatusEmoji = "🆗 就绪";break;
-            case 2:procStatusEmoji = "🚀 运行";break;
-            case 3:procStatusEmoji = "🚥 等待";break;
-            case 4:procStatusEmoji = "🖨️ IO";break;
-            default:procStatusEmoji = "UNKNOWN";
+        case 1:procStatusEmoji = "🆗 就绪";break;
+        case 2:procStatusEmoji = "🚀 运行";break;
+        case 3:procStatusEmoji = "🚥 等待";break;
+        case 4:procStatusEmoji = "🖨️ IO";break;
+        default:procStatusEmoji = "🖥️ PowerSimulator 系统";
         }
 
         ui->lineEdit_procStatus->setText(procStatusEmoji);
 
         if(partition->associatedPCB->getPriority() == -1)
         {
-            this->setFixedHeight(this->height()-40);
-            ui->groupBox_proc->setGeometry(ui->groupBox_proc->x(),ui->groupBox_proc->y(),ui->groupBox_proc->width(),ui->groupBox_proc->height()-30);
-            ui->lineEdit_priority->hide();
-            ui->label_priority->hide();
+            if(partition->associatedPCB->getPid() == -1)
+            {
+                ui->lineEdit_priority->setText(QString::number(partition->associatedPCB->getPriority()).append("(系统拥有至高优先权)"));
+            }
+            else
+            {
+                this->setFixedHeight(this->height()-40);
+                ui->groupBox_proc->setGeometry(ui->groupBox_proc->x(),ui->groupBox_proc->y(),ui->groupBox_proc->width(),ui->groupBox_proc->height()-30);
+                ui->lineEdit_priority->hide();
+                ui->label_priority->hide();
+            }
         }
         else
         {

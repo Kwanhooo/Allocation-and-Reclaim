@@ -55,11 +55,8 @@ Simulator::Simulator(QWidget *parent) :
 
     this->displayButtonList = new QList<QPushButton*>();
 
-    //初始化内存分区表
-    Partition* initPartition = new Partition(0,this->memorySize,0);
-    initPartition->associatedPCB = nullptr;
-    this->partitionTable.append(initPartition);
-    this->refreshMemoryUI();
+    //初始化系统内存和分区表
+    initSystemMemory();
 }
 
 Simulator::~Simulator()
@@ -274,38 +271,6 @@ void Simulator::loadProc()
 
 }
 
-//此前的版本
-//void Simulator::loadProc()
-//{
-//    qDebug()<<"DEBUG::backupProcList.isEmpty() == "<<(backupProcList.isEmpty());
-//    if(backupProcList.isEmpty())
-//        return;
-//    if(readyList.length() >= MAX_PROGRAM_AMOUNT)
-//        return;
-
-//    PCB* pcbToLoad = this->backupProcList.takeFirst();//取出第一个
-
-//    int startingPos = this->firstFitAction(pcbToLoad);
-
-//    if(startingPos == -1)//放不下
-//    {
-//        addLog(QString("装载进程失败：PID = ").append(QString::number(pcbToLoad->getPid()))
-//               .append("  -> 内存不足\n\t").append("所需内存:").append(QString::number(pcbToLoad->getNeededLength())));
-//        this->backupProcList.append(pcbToLoad);
-//        this->refreshBackupUI();
-//    }
-//    else//放得下
-//    {
-//        pcbToLoad->setStartingPos(startingPos);
-//        this->readyList.append(pcbToLoad);
-//        addLog(QString("装载进程：PID = ").append(QString::number(pcbToLoad->getPid())).append("至Ready队列   ")
-//               .append("内存起址:").append(QString::number(pcbToLoad->getStartingPos())));
-//        this->refreshReadyUI();
-//        this->refreshBackupUI();
-//        this->refreshMemoryUI();
-//    }
-//}
-
 void Simulator::refreshSuspendedUI()
 {
     QStringList suspendedStringList;
@@ -501,13 +466,18 @@ void Simulator::refreshMemoryUI()
         QString statusEmoji;
         if(partitionTable.at(i)->getStatus() == 0)
         {
-            statusEmoji = "🔑";
-            displayButton->setStyleSheet("background-color: rgb(166, 191, 75);color:rgb(0, 0, 0);font-size: 13px;font-family: \"Cascadia Code\", serif;");
+            statusEmoji = "🔑 ";
+            displayButton->setStyleSheet("background-color: rgb(166, 191, 75);color:rgb(0, 0, 0);font-size: 13px;font-family: \"Segoe UI Emoji\", serif;");
+        }
+        else if(partitionTable.at(i)->associatedPCB->getPid() == -1)
+        {
+            statusEmoji = "🖥️  系统保留\n";
+            displayButton->setStyleSheet("background-color:#FF665A;color:rgb(0, 0, 0);font-size: 13px;font-family: \"Segoe UI Emoji\", serif;");
         }
         else
         {
-            statusEmoji = "🔒";
-            displayButton->setStyleSheet("background-color: rgb(255, 102, 90);color:rgb(0, 0, 0);font-size: 13px;font-family: \"Cascadia Code\", serif;");
+            statusEmoji = "🔒 ";
+            displayButton->setStyleSheet("background-color: #FF865A;color:rgb(0, 0, 0);font-size: 13px;font-family: \"Segoe UI Emoji\", serif;");
 
         }
         QString displayContent = QString::number(partitionToShow->getStart())+"\n"+
@@ -528,37 +498,20 @@ void Simulator::refreshMemoryUI()
     }
 }
 
-/*
- * 此前的版本
- */
-//void Simulator::refreshMemoryUI()
-//{
-//    QStringList partititonStringList;
-//    for (int i = 0;i < this->partitionTable.length(); i++)
-//    {
-//        QString statusEmoji;
-//        if(partitionTable.at(i)->getStatus() == 0)
-//            statusEmoji = "✔";
-//        else
-//            statusEmoji = "🔒";
+void Simulator::initSystemMemory()
+{
+    Partition* systemPartition = new Partition(0,this->systemReservedLength,1);
+    PCB* systemPCB = new PCB(-1,-1,-1,this->systemReservedLength);
+    systemPartition->associatedPCB = systemPCB;
 
-//        if(i == 0)
-//        {
-//            partititonStringList<<QString::number(partitionTable.at(i)->getStart())+"\n\n"+
-//                                  "LENGTH -> "+QString::number(partitionTable.at(i)->getLength())+"\n"+
-//                                  "STATUS -> "+statusEmoji+"\n\n"+
-//                                  QString::number(partitionTable.at(i)->getLength()+partitionTable.at(i)->getStart());
-//       }
-//        else {
-//            partititonStringList<<"\nLENGTH -> "+QString::number(partitionTable.at(i)->getLength())+"\n"
-//                                  "STATUS -> "+statusEmoji+"\n\n"+
-//                                  QString::number(partitionTable.at(i)->getLength()+partitionTable.at(i)->getStart());
-//        }
+    Partition* initEmptyPartition = new Partition(this->systemReservedLength,this->memorySize-systemReservedLength,0);
+    initEmptyPartition->associatedPCB = nullptr;
 
-//    }
-//    QStringListModel* partititonStringListModel = new QStringListModel(partititonStringList);
-//    ui->listView_memory->setModel(partititonStringListModel);
-//}
+    this->partitionTable.append(systemPartition);
+    this->partitionTable.append(initEmptyPartition);
+
+    this->refreshMemoryUI();
+}
 
 void Simulator::loadIOProc(QString IOType)
 {
@@ -655,7 +608,7 @@ void Simulator::automaticRun()
 
 int Simulator::firstFitAction(PCB* pcb)
 {
-    firstAgain:
+firstAgain:
     //遍历一次分区表，找到第一个放得下的位置
     for (int i = 0;i < this->partitionTable.length();i++)
     {
