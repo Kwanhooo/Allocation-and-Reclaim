@@ -562,6 +562,19 @@ QPushButton:hover{
   <zorder>groupBox_partition</zorder>
   <zorder>groupBox_proc</zorder>
  </widget>
+ <tabstops>
+  <tabstop>lineEdit_startingPos</tabstop>
+  <tabstop>lineEdit_length</tabstop>
+  <tabstop>lineEdit_partitionStatus</tabstop>
+  <tabstop>lineEdit_PID</tabstop>
+  <tabstop>lineEdit_neededMemory</tabstop>
+  <tabstop>lineEdit_neededTime</tabstop>
+  <tabstop>lineEdit_calTime</tabstop>
+  <tabstop>lineEdit_procStatus</tabstop>
+  <tabstop>lineEdit_priority</tabstop>
+  <tabstop>btn_min</tabstop>
+  <tabstop>btn_close</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

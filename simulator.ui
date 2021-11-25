@@ -1051,7 +1051,7 @@
    <property name="font">
     <font>
      <family>Cascadia Code</family>
-     <pointsize>11</pointsize>
+     <pointsize>10</pointsize>
      <weight>75</weight>
      <italic>true</italic>
      <bold>true</bold>
@@ -1246,6 +1246,33 @@ QPushButton:hover{
   <zorder>pushButton_reboot</zorder>
   <zorder>layoutWidget</zorder>
  </widget>
+ <tabstops>
+  <tabstop>pushButton_custom</tabstop>
+  <tabstop>pushButton_random</tabstop>
+  <tabstop>pushButton_manual</tabstop>
+  <tabstop>pushButton_auto</tabstop>
+  <tabstop>pushButton_auto_stop</tabstop>
+  <tabstop>pushButton_IO</tabstop>
+  <tabstop>pushButton_IO_All</tabstop>
+  <tabstop>pushButton_suspend</tabstop>
+  <tabstop>pushButton_suspend_off</tabstop>
+  <tabstop>spinBox_maxProcAmount</tabstop>
+  <tabstop>spinBox_timeSlice</tabstop>
+  <tabstop>spinBox_IORate</tabstop>
+  <tabstop>spinBox_autoIOGap</tabstop>
+  <tabstop>lineEdit_timeScale</tabstop>
+  <tabstop>pushButton_reboot</tabstop>
+  <tabstop>listView_backup</tabstop>
+  <tabstop>listView_ready</tabstop>
+  <tabstop>listView_running</tabstop>
+  <tabstop>listView_waiting</tabstop>
+  <tabstop>listView_IO</tabstop>
+  <tabstop>listView_suspended</tabstop>
+  <tabstop>listView_terminated</tabstop>
+  <tabstop>textBrowser</tabstop>
+  <tabstop>btn_min</tabstop>
+  <tabstop>btn_close</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

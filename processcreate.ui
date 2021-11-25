@@ -319,6 +319,16 @@ QPushButton:hover{
    </property>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>lineEdit_pid</tabstop>
+  <tabstop>lineEdit_neededtime</tabstop>
+  <tabstop>lineEdit_priority</tabstop>
+  <tabstop>lineEdit_neededLength</tabstop>
+  <tabstop>pushButton_create</tabstop>
+  <tabstop>pushButton_exit</tabstop>
+  <tabstop>btn_min</tabstop>
+  <tabstop>btn_close</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

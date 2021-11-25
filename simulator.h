@@ -11,6 +11,10 @@
 #include <QBitmap>
 #include <QPainter>
 
+#include <QSystemTrayIcon>
+#include <QMenu>
+#include <QAction>
+
 #include "pcb.h"
 #include "partition.h"
 #include "partitiondetails.h"
@@ -33,15 +37,16 @@ public:
 
     //参数
     const int maxPID = 100000;
-    const int maxTime = 5;
+    const int maxTime = 30;
     const int maxPriority = 63;
     const int agingTime = 30;
 
     //内存相关
-    const int memorySize = 64;//Bytes
-    const int minNeededLength = 10;//Bytes
-    const int maxNeededLength = 20;//Bytes
-    const int systemReservedLength = 16;//Bytes
+    const int memorySize = 64;//内存总大小
+    const int minNeededLength = 10;//控制随机生成的进程的最小所需内存单位
+    const int maxNeededLength = 20;//控制随机生成的进程的最大所需内存单位
+    const int systemReservedLength = 16;//系统保留内存大小
+    QString unitsOfMeasurement = " MB";
 
     //内存监视器相关
     const int ORIGIN_X = 1128;
@@ -89,7 +94,6 @@ private slots:
     void on_btn_min_clicked();
     void on_btn_close_clicked() __attribute__((noreturn));
     void on_btn_displayBtn_clicked(Partition* partitionToShow);
-
     void on_pushButton_reboot_clicked();
 
 protected:
@@ -100,12 +104,33 @@ protected:
 
 private:
 
-    //鼠标事件相关变量
+    /*
+     * 以下为鼠标以及托盘部分
+     */
+
+    //鼠标事件相关
     bool m_Drag = false;
     QPoint m_DragPosition;
 
-    Ui::Simulator *ui;
+    //托盘相关
+    QSystemTrayIcon* m_systemTray = new QSystemTrayIcon(this);
+    QMenu* m_menu;
+    QAction* m_action1;
+    QAction* m_action2;
+    void initSystemTray();
 
+    void activeTray(QSystemTrayIcon::ActivationReason reason);
+    void showMenu();
+    void showWindow();
+    void showMessage();
+    QString messageToShow = "Hi There!";
+    QString messageTitle = "PowerSimulator";
+    const int messageDuration = 1000;
+
+    /*
+     * 以下为运行所必要的部分
+     */
+    Ui::Simulator *ui;
     int startMode;
 
     PCB* runningProc;//指向正在运行的进程

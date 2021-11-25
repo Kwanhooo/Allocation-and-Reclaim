@@ -14,12 +14,16 @@ Simulator::Simulator(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Simulator)
 {
+    /*
+     * 以下部分为UI初始化
+     */
     ui->setupUi(this);
     this->setWindowTitle("PowerSimulator");
     this->setWindowFlag(Qt::FramelessWindowHint);
     ui->titleBarGroup->setAlignment(Qt::AlignRight);
     this->setFixedSize(this->width(),this->height());
 
+    //窗口圆角化处理
     QBitmap bmp(this->size());
     bmp.fill();
     QPainter p(&bmp);
@@ -29,6 +33,14 @@ Simulator::Simulator(QWidget *parent) :
     p.drawRoundedRect(bmp.rect(), 15, 15);
     setMask(bmp);
 
+    //托盘初始化
+    initSystemTray();
+
+    /*
+     * 以下部分为运行初始化
+     */
+
+    //初始化一些必要参数
     this->runningProc = nullptr;
     this->USBOccupy = 0;
     this->PrinterOccupy = 0;
@@ -39,12 +51,14 @@ Simulator::Simulator(QWidget *parent) :
     TIME_SLICE = 10;
     MAX_PROGRAM_AMOUNT = 8;
     randomlyEventRate = 5;
-    autoIOGap = 30;
+    autoIOGap = 25;
 
+    //初始化计时器
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &Simulator::automaticRun);
     this->timeScale = 100;
 
+    //设定一些组件的属性
     ui->lineEdit_timeScale->setText(QString::number(timeScale));
     ui->spinBox_IORate->setValue(this->randomlyEventRate);
     ui->spinBox_timeSlice->setValue(this->TIME_SLICE);
@@ -53,6 +67,7 @@ Simulator::Simulator(QWidget *parent) :
     ui->label_rotation->setVisible(false);
     ui->label_IO_icon->setVisible(false);
 
+    //初始化内存监视器的容器
     this->displayButtonList = new QList<QPushButton*>();
 
     //初始化系统内存和分区表
@@ -79,6 +94,67 @@ void Simulator::mousePressEvent(QMouseEvent *event)
     QWidget::mousePressEvent(event);
 }
 
+void Simulator::initSystemTray()
+{
+    m_systemTray = new QSystemTrayIcon(this);
+    m_systemTray->setIcon(QIcon("://res/icon.png"));
+    m_systemTray->setToolTip("PowerSimulator");
+    m_systemTray->show();
+
+    m_menu = new QMenu(this);
+    m_action1 = new QAction(m_menu);
+    m_action2 = new QAction(m_menu);
+
+    m_action1->setText("显示主窗口");
+    m_action2->setText("回看上一条消息");
+
+    m_menu->addAction(m_action1);
+    m_menu->addAction(m_action2);
+
+    connect(m_action1, &QAction::triggered, this, &Simulator::showWindow);
+    connect(m_action2, &QAction::triggered, this, &Simulator::showMessage);
+
+    m_systemTray->setContextMenu(m_menu);
+
+    connect(m_systemTray, &QSystemTrayIcon::activated, this, &Simulator::activeTray);//点击托盘，执行相应的动作
+    connect(m_systemTray, &QSystemTrayIcon::messageClicked, this, &Simulator::showWindow);//点击消息框，显示主窗口
+}
+
+void Simulator::activeTray(QSystemTrayIcon::ActivationReason reason)
+{
+    switch (reason)
+    {
+    case QSystemTrayIcon::Context:
+        showMenu();
+        break;
+    case QSystemTrayIcon::Trigger:
+        showWindow();
+        break;
+    default:return;
+    }
+}
+
+
+void Simulator::showMenu()
+{
+    m_menu->show();
+}
+
+void Simulator::showWindow()
+{
+    if( this->isHidden())
+        this->show();
+    else
+        this->hide();
+}
+
+void Simulator::showMessage()
+{
+    m_systemTray->showMessage(this->messageTitle,//消息窗口标题
+                              this->messageToShow,//消息内容
+                              QSystemTrayIcon::MessageIcon::Information,//消息窗口图标
+                              messageDuration);//消息窗口显示时长
+}
 
 void Simulator::mouseMoveEvent(QMouseEvent *event)
 {
@@ -113,6 +189,9 @@ void Simulator::setupSimulator(int startMode)
     default:startModeStr = "ERROR";
     }
     addLog(QString("Simulator已以\""+startModeStr+"\"模式加载启动"));
+    this->messageTitle = "PowerSimulator - 启动";
+    this->messageToShow = QString("Simulator已以\""+startModeStr+"\"模式加载启动");
+    showMessage();
 }
 
 //按照优先级字段排序
@@ -240,6 +319,7 @@ void Simulator::refreshBackupUI()
 //从后备队列里面装载进程
 void Simulator::loadProc()
 {
+    refreshMemoryUI();
     qDebug()<<"DEBUG::backupProcList.isEmpty() == "<<(backupProcList.isEmpty());
     if(backupProcList.isEmpty())
         return;
@@ -253,8 +333,8 @@ void Simulator::loadProc()
 
         if(startingPos == -1)//放不下
         {
-            addLog(QString("未装载进程：PID = ").append(QString::number(pcbToLoad->getPid()))
-                   .append("  -> 内存不足\n\t\t").append("所需内存:").append(QString::number(pcbToLoad->getNeededLength())));
+            //            addLog(QString("未装载进程：PID = ").append(QString::number(pcbToLoad->getPid()))
+            //                   .append("  -> 内存不足\n\t\t").append("所需内存:").append(QString::number(pcbToLoad->getNeededLength())));
         }
         else//放得下
         {
@@ -439,7 +519,9 @@ void Simulator::refreshIOUI()
 
 void Simulator::refreshMemoryUI()
 {
-    ui->label_memoryUsage->setText(QString::number(this->memorySize - getFreeMemorySize()).append(" / ").append(QString::number(this->memorySize)).append(" MB"));
+    ui->label_memoryUsage->setText(QString::number(this->memorySize - getFreeMemorySize()).append(" / ")
+                                   .append(QString::number(this->memorySize))
+                                   .append(unitsOfMeasurement));
     qDebug()<<"DEBUG::内存监视器刷新"<<endl;
     //从按钮组中删除所有按钮
     for (int i = 0;i < this->displayButtonList->length();i++)
@@ -477,8 +559,10 @@ void Simulator::refreshMemoryUI()
         else
         {
             statusEmoji = "🔒 ";
-            displayButton->setStyleSheet("background-color: #FF865A;color:rgb(0, 0, 0);font-size: 13px;font-family: \"Segoe UI Emoji\", serif;");
-
+            if(partitionToShow->associatedPCB->getNeededTime() == partitionToShow->associatedPCB->getCalUseTime())
+                displayButton->setStyleSheet("background-color: #FFC35A;color:rgb(0, 0, 0);font-size: 13px;font-family: \"Segoe UI Emoji\", serif;");
+            else
+                displayButton->setStyleSheet("background-color: #FF865A;color:rgb(0, 0, 0);font-size: 13px;font-family: \"Segoe UI Emoji\", serif;");
         }
         QString displayContent = QString::number(partitionToShow->getStart())+"\n"+
                 statusEmoji+" LENGTH -> "+QString::number(partitionToShow->getLength())+"\n"+
@@ -743,8 +827,12 @@ void Simulator::shrinkAction(int neededLength)
             {
                 qDebug()<<"DEBUG::SHRINK出错！";
             }
-            this->addLog("收缩了内存空间，收缩空间起址:"+QString::number(shrinkedStartingPos)+"\n\t\t"+
-                         "收缩出的总长度:"+QString::number(shrinkedLength));
+            this->addLog("**收缩了内存空间，收缩空间起址:"+QString::number(shrinkedStartingPos)+"\n\t\t"+
+                         "**收缩出的总长度:"+QString::number(shrinkedLength));
+            this->messageTitle = "PowerSimulator - 内存收缩";
+            this->messageToShow = "收缩了内存空间，收缩空间起址:"+QString::number(shrinkedStartingPos)+"\n"+
+                                  "收缩出的总长度:"+QString::number(shrinkedLength);
+            showMessage();
             return;
         }
     }
@@ -761,19 +849,27 @@ void Simulator::IOAll()
 //从创建进程窗口接受新的PCB
 void Simulator::getNewPCB(PCB *pcb)
 {
-    if(readyList.length() < MAX_PROGRAM_AMOUNT)//小于道数就直接载入
-    {
-        this->readyList.append(pcb);
-        addLog(QString("添加了新进程：PID = ").append(QString::number(pcb->getPid())));
-        addLog(QString("装载进程：PID = ").append(QString::number(pcb->getPid())).append("至Ready队列"));
-        refreshReadyUI();
-    }
-    else
-    {
-        this->backupProcList.append(pcb);
-        addLog(QString("添加了新进程：PID = ").append(QString::number(pcb->getPid())));
-        refreshBackupUI();
-    }
+    //    if(readyList.length() < MAX_PROGRAM_AMOUNT)//小于道数就直接载入
+    //    {
+    //        this->readyList.append(pcb);
+    //        addLog(QString("手动添加了新进程：PID = ").append(QString::number(pcb->getPid())));
+    //        addLog(QString("装载进程：PID = ").append(QString::number(pcb->getPid())).append("至Ready队列"));
+    //        refreshReadyUI();
+    //    }
+    //    else
+    //    {
+    //        this->backupProcList.append(pcb);
+    //        addLog(QString("手动添加了新进程：PID = ").append(QString::number(pcb->getPid())));
+    //        refreshBackupUI();
+    //    }
+    this->backupProcList.append(pcb);
+    addLog(QString("手动添加了新进程：PID = ").append(QString::number(pcb->getPid())));
+    this->messageTitle = "PowerSimulator - 手动添加";
+    this->messageToShow = QString("手动添加了新进程：PID = ").append(QString::number(pcb->getPid()));
+    showMessage();
+
+    refreshBackupUI();
+    loadProc();
 }
 
 //弹出进程创建窗口
@@ -851,6 +947,11 @@ void Simulator::nonPriorityAction()
         {
             addLog("PID:"+QString::number(runningProc->getPid())+" -> 现已终结"+"\n\t\t"
                                                                             "总耗时:"+QString::number(runningProc->getNeededTime()));
+//            this->messageTitle = "PowerSimulator - 进程终结";
+//            this->messageToShow = "PID:"+QString::number(runningProc->getPid())+" -> 现已终结"+"\n"+
+//                                  "总耗时:"+QString::number(runningProc->getNeededTime());
+//            showMessage();
+
             this->terminatedList.append(runningProc);
             //释放内存
             this->releasePartition(runningProc->getStartingPos());
@@ -863,6 +964,9 @@ void Simulator::nonPriorityAction()
                 resetRunningUI();
                 ui->label_rotation->setVisible(false);
                 addLog("全部进程已执行完毕！");
+                this->messageTitle = "PowerSimulator - 执行完毕";
+                this->messageToShow = "全部进程已执行完毕！";
+                showMessage();
             }
         }
         else
@@ -880,6 +984,11 @@ void Simulator::nonPriorityAction()
         {
             addLog("PID:"+QString::number(runningProc->getPid())+" -> 现已终结"+"\n\t\t"
                                                                             "总耗时:"+QString::number(runningProc->getNeededTime()));
+//            this->messageTitle = "PowerSimulator - 进程终结";
+//            this->messageToShow = "PID:"+QString::number(runningProc->getPid())+" -> 现已终结"+"\n"+
+//                                  "总耗时:"+QString::number(runningProc->getNeededTime());
+//            showMessage();
+
             ui->label_rotation->setVisible(true);
             this->terminatedList.append(runningProc);
             //释放内存
@@ -893,7 +1002,11 @@ void Simulator::nonPriorityAction()
 
                 if(IOList.isEmpty())
                 {
-                    addLog("全部进程已执行完毕！");
+//                    addLog("全部进程已执行完毕！");
+//                    this->messageTitle = "PowerSimulator - 执行完毕";
+//                    this->messageToShow = "全部进程已执行完毕！";
+//                    showMessage();
+
                     ui->label_rotation->setVisible(false);
                     timer->stop();
                 }
@@ -935,6 +1048,11 @@ void Simulator::preemptiveProrityAction()
         {
             addLog("PID:"+QString::number(runningProc->getPid())+" -> 现已终结"+"\n\t\t"
                                                                             "总耗时:"+QString::number(runningProc->getNeededTime()));
+//            this->messageTitle = "PowerSimulator - 进程终结";
+//            this->messageToShow = "PID:"+QString::number(runningProc->getPid())+" -> 现已终结"+"\n"+
+//                                  "总耗时:"+QString::number(runningProc->getNeededTime());
+//            showMessage();
+
             this->terminatedList.append(runningProc);
             //释放内存
             this->releasePartition(runningProc->getStartingPos());
@@ -950,6 +1068,9 @@ void Simulator::preemptiveProrityAction()
                     timer->stop();
                     ui->label_rotation->setVisible(false);
                     addLog("全部进程已执行完毕！");
+//                    this->messageTitle = "PowerSimulator - 执行完毕";
+//                    this->messageToShow = "全部进程已执行完毕！";
+//                    showMessage();
                 }
                 else
                     IOAll();
@@ -988,6 +1109,11 @@ void Simulator::preemptiveProrityAction()
         {
             addLog("PID:"+QString::number(runningProc->getPid())+" -> 现已终结"+"\n\t\t"
                                                                             "总耗时:"+QString::number(runningProc->getNeededTime()));
+//            this->messageTitle = "PowerSimulator - 进程终结";
+//            this->messageToShow = "PID:"+QString::number(runningProc->getPid())+" -> 现已终结"+"\n"+
+//                                  "总耗时:"+QString::number(runningProc->getNeededTime());
+//            showMessage();
+
             this->terminatedList.append(runningProc);
             //释放内存
             this->releasePartition(runningProc->getStartingPos());
@@ -1002,6 +1128,10 @@ void Simulator::preemptiveProrityAction()
                 if(IOList.isEmpty())
                 {
                     addLog("全部进程已执行完毕！");
+//                    this->messageTitle = "PowerSimulator - 执行完毕";
+//                    this->messageToShow = "全部进程已执行完毕！";
+//                    showMessage();
+
                     ui->label_rotation->setVisible(false);
                     timer->stop();
                 }
@@ -1043,6 +1173,11 @@ void Simulator::roundRobinAction()
         {
             addLog("PID:"+QString::number(runningProc->getPid())+" -> 现已终结"+"\n\t\t"+
                    "总耗时:"+QString::number(runningProc->getNeededTime()));
+//            this->messageTitle = "PowerSimulator - 进程终结";
+//            this->messageToShow = "PID:"+QString::number(runningProc->getPid())+" -> 现已终结"+"\n"+
+//                                  "总耗时:"+QString::number(runningProc->getNeededTime());
+//            showMessage();
+
             this->terminatedList.append(runningProc);
 
             //释放内存
@@ -1056,6 +1191,10 @@ void Simulator::roundRobinAction()
             if(this->readyList.isEmpty())
             {
                 addLog("全部进程已执行完毕！");
+//                this->messageTitle = "PowerSimulator - 执行完毕";
+//                this->messageToShow = "全部进程已执行完毕！";
+//                showMessage();
+
                 if(IOList.isEmpty())
                     timer->stop();
                 else
@@ -1079,6 +1218,11 @@ void Simulator::roundRobinAction()
         {
             addLog("PID:"+QString::number(runningProc->getPid())+" -> 现已终结"+"\n\t\t"
                                                                             "总耗时:"+QString::number(runningProc->getNeededTime()));
+//            this->messageTitle = "PowerSimulator - 进程终结";
+//            this->messageToShow = "PID:"+QString::number(runningProc->getPid())+" -> 现已终结"+"\n"+
+//                                  "总耗时:"+QString::number(runningProc->getNeededTime());
+//            showMessage();
+
             this->terminatedList.append(runningProc);
 
             //释放内存
@@ -1091,6 +1235,10 @@ void Simulator::roundRobinAction()
             if(this->readyList.isEmpty())
             {
                 addLog("全部进程已执行完毕！");
+//                this->messageTitle = "PowerSimulator - 执行完毕";
+//                this->messageToShow = "全部进程已执行完毕！";
+//                showMessage();
+
                 if(IOList.isEmpty())
                     timer->stop();
                 else
@@ -1104,6 +1252,12 @@ void Simulator::roundRobinAction()
                 addLog("PID:"+QString::number(runningProc->getPid())+" -> 用完了所有的时间片"+"\n\t\t"+
                        "剩余运行时间:"+QString::number(runningProc->getCalUseTime())+"\n\t\t"
                        +"发生轮转");
+                this->messageTitle = "PowerSimulator - 进程轮转";
+                this->messageToShow = "PID:"+QString::number(runningProc->getPid())+" -> 用完了所有的时间片"+"\n"+
+                        "剩余运行时间:"+QString::number(runningProc->getCalUseTime())+"\n"
+                        +"发生轮转";
+                showMessage();
+
                 this->runningProc->resetUsedTimeSlice();
                 if(!readyList.isEmpty())
                 {
@@ -1277,10 +1431,12 @@ void Simulator::on_pushButton_suspend_off_clicked()
                 if(pcb->getPid() == pid.toInt())
                 {
                     this->backupProcList.append(pcb);
-                    this->loadProc();
+                    refreshBackupUI();
+//                    this->loadProc();
                     suspendedList.removeOne(pcb);
                     refreshReadyUI();
                     refreshSuspendedUI();
+                    this->loadProc();
                     break;
                 }
             }
