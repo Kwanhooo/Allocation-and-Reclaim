@@ -1,4 +1,6 @@
 # Allocation-and-Reclaim
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FKwanhooo%2FAllocation-and-Reclaim.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FKwanhooo%2FAllocation-and-Reclaim?ref=badge_shield)
+
 ### 模拟器 - 主存储器空间的分配和回收
 
 #### 内容
@@ -18,3 +20,7 @@
 3、采用最先适应算法分配主存空间；
 
 4、进程完成后，回收主存，并与相邻空闲分区合并。
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FKwanhooo%2FAllocation-and-Reclaim.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FKwanhooo%2FAllocation-and-Reclaim?ref=badge_large)
